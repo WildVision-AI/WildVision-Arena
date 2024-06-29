@@ -31,6 +31,7 @@ from arena.serve.gradio_web_server import (
     set_global_vars,
     block_css,
     build_single_model_ui,
+    build_single_model_chatbot,
     build_about,
     get_model_list,
     load_demo_single,
@@ -54,18 +55,20 @@ def load_demo(url_params, request: gr.Request):
     ip = get_ip(request)
     logger.info(f"load_demo. ip: {ip}. params: {url_params}")
     ip_expiration_dict[ip] = time.time() + SESSION_EXPIRATION_TIME
-
+    from icecream import ic
+    ic(url_params)
     selected = 0
-    if "arena" in url_params:
-        selected = 0
-    elif "compare" in url_params:
-        selected = 1
-    # elif "bench" in url_params:
-    #     selected = 2
-    elif "single" in url_params:
-        selected = 2
-    elif "leaderboard" in url_params:
-        selected = 3
+    if url_params is not None:
+        if "arena" in url_params:
+            selected = 0
+        elif "compare" in url_params:
+            selected = 1
+        # elif "bench" in url_params:
+        #     selected = 2
+        elif "single" in url_params:
+            selected = 2
+        elif "leaderboard" in url_params:
+            selected = 3
 
     if args.model_list_mode == "reload":
         if args.anony_only_for_proprietary_model:
@@ -123,8 +126,12 @@ def load_demo(url_params, request: gr.Request):
     )
 
 
-def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct=False):
+def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct=True):
     text_size = gr.themes.sizes.text_md
+    if args.show_terms_of_use:
+        load_js = get_window_url_params_with_tos_js
+    else:
+        load_js = get_window_url_params_js
     with gr.Blocks(
         title="Chat with Open Multimodal Large Language Models",
         # theme=gr.themes.Default(text_size=text_size),
@@ -143,8 +150,12 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
                 # with gr.Tab("⚔️ Arena (bench)", id=2):
                 #     side_by_side_anony_list = build_side_by_side_ui_anony_bench(models)
 
+                # with gr.Tab("💬 Direct Chat", elem_id="arena-tab", id=2):
+                #     single_model_list = build_single_model_ui(
+                #         models, add_promotion_links=True
+                #     )
                 with gr.Tab("💬 Direct Chat", elem_id="arena-tab", id=2):
-                    single_model_list = build_single_model_ui(
+                    single_model_list = build_single_model_chatbot(
                         models, add_promotion_links=True
                     )
             else:
@@ -155,7 +166,7 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
             if elo_results_file:
                 with gr.Tab("🏆 Leaderboard", elem_id="arena-tab", id=3):
                     build_leaderboard_tab(elo_results_file, leaderboard_table_file)
-            with gr.Tab("ℹ️ About Us", elem_id="arena-tab", id=4):
+            with gr.Tab("ℹ️ About Us", elem_id="arena-tab", id=5):
                 about = build_about()
 
         url_params = gr.JSON(visible=False)
@@ -163,10 +174,6 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
         if args.model_list_mode not in ["once", "reload"]:
             raise ValueError(f"Unknown model list mode: {args.model_list_mode}")
 
-        if args.show_terms_of_use:
-            load_js = get_window_url_params_with_tos_js
-        else:
-            load_js = get_window_url_params_js
 
         demo.load(
             load_demo,
@@ -301,8 +308,9 @@ if __name__ == "__main__":
 
     # Launch the demo
     demo = build_demo(models, args.elo_results_file, args.leaderboard_table_file)
+    # deprecation: concurrency_count=args.concurrency_count, 
     demo.queue(
-        concurrency_count=args.concurrency_count, status_update_rate=10, api_open=False
+        status_update_rate=10, api_open=False
     ).launch(
         server_name=args.host,
         server_port=args.port,

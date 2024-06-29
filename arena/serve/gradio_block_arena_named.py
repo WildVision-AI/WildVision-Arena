@@ -68,8 +68,8 @@ def load_demo_side_by_side_named(models, url_params):
         model_right = model_left
 
     selector_updates = (
-        gr.Dropdown.update(choices=models, value=model_left, visible=True),
-        gr.Dropdown.update(choices=models, value=model_right, visible=True),
+        gr.Dropdown(choices=models, value=model_left, visible=True),
+        gr.Dropdown(choices=models, value=model_right, visible=True),
     )
 
     return states + selector_updates
@@ -359,7 +359,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
 
     notice = gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
-    with gr.Box(elem_id="share-region-named"):
+    with gr.Blocks(elem_id="share-region-named"):
         
 
         with gr.Row():
@@ -391,21 +391,6 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
                                 label=label, elem_id=f"chatbot", height=700, show_copy_button=True,
                             )
 
-        with gr.Row():
-            reason_textbox = gr.Textbox(label="Reason", placeholder="Please input your reason for response preference here before clicking the model choice button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=False)
-
-        with gr.Row():
-            leftvote_btn = gr.Button(
-                value="👈  A is better", visible=False, interactive=False
-            )
-            rightvote_btn = gr.Button(
-                value="👉  B is better", visible=False, interactive=False
-            )
-            tie_btn = gr.Button(value="🤝  Tie", visible=False, interactive=False)
-            bothbad_btn = gr.Button(
-                value="👎  Both are bad", visible=False, interactive=False
-            )
-
     with gr.Row():
         textbox = gr.Textbox(
             lines=2,
@@ -417,11 +402,24 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         )
         send_btn = gr.Button(value="Send", variant="primary", scale=0)
 
+    with gr.Row():
+        reason_textbox = gr.Textbox(label="Reason", placeholder="Please input your reason for response preference here before clicking the model choice button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=False)
+
+    with gr.Row():
+        leftvote_btn = gr.Button(
+            value="👈  A is better", visible=False, interactive=False
+        )
+        rightvote_btn = gr.Button(
+            value="👉  B is better", visible=False, interactive=False
+        )
+        tie_btn = gr.Button(value="🤝  Tie", visible=False, interactive=False)
+        bothbad_btn = gr.Button(
+            value="👎  Both are bad", visible=False, interactive=False
+        )
     with gr.Row() as button_row:
         sample_btn = gr.Button(value="🎲 Sample Input", interactive=True)
         clear_btn = gr.Button(value="🗑️  Clear history", interactive=False)
         regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False)
-        share_btn = gr.Button(value="📷  Share")
 
     with gr.Accordion("⚙️ Parameters", open=False) as parameter_row:
         temperature = gr.Slider(
@@ -505,28 +503,6 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         states + chatbots + [textbox, imagebox] + btn_list + [reason_textbox],
     )
     
-    share_js = """
-function (a, b, c, d) {
-    const captureElement = document.querySelector('#share-region-named');
-    html2canvas(captureElement)
-        .then(canvas => {
-            canvas.style.display = 'none'
-            document.body.appendChild(canvas)
-            return canvas
-        })
-        .then(canvas => {
-            const image = canvas.toDataURL('image/png')
-            const a = document.createElement('a')
-            a.setAttribute('download', 'chatbot-arena.png')
-            a.setAttribute('href', image)
-            a.click()
-            canvas.remove()
-        });
-    return [a, b, c, d];
-}
-"""
-    share_btn.click(share_click, states + model_selectors, [], _js=share_js)
-
     for i in range(num_sides):
         model_selectors[i].change(
             clear_history, None, states + chatbots + [textbox, imagebox] + btn_list

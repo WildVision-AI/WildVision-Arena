@@ -61,20 +61,43 @@ from arena.utils import (
 
 import traceback
 
+#
+# import copy
+import torch
+# import random
+import numpy as np
+
+from arena.vlm_utils.llava import conversation as conversation_lib
+from arena.vlm_utils.llava.constants import DEFAULT_IMAGE_TOKEN
+
+
+from arena.vlm_utils.llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
+from arena.vlm_utils.llava.conversation import conv_templates, SeparatorStyle
+from arena.vlm_utils.llava.model.builder import load_pretrained_model
+from arena.vlm_utils.llava.utils import disable_torch_init
+from arena.vlm_utils.llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+
+from PIL import Image
+
+import requests
+from PIL import Image
+from io import BytesIO
+from transformers import TextStreamer
+
 logger = build_logger("gradio_web_server", "gradio_web_server.log")
 
 headers = {"User-Agent": "FastChat Client"}
 
-no_change_btn = gr.Button.update()
-enable_btn = gr.Button.update(interactive=True, visible=True)
-disable_btn = gr.Button.update(interactive=False)
-invisible_btn = gr.Button.update(interactive=False, visible=False)
+no_change_btn = gr.Button()
+enable_btn = gr.Button(interactive=True, visible=True)
+disable_btn = gr.Button(interactive=False)
+invisible_btn = gr.Button(interactive=False, visible=False)
 
-no_change_textbox = gr.Textbox.update()
-enable_textbox = gr.Textbox.update(interactive=True, visible=True)
-disable_textbox = gr.Textbox.update(interactive=False)
-clear_textbox = gr.Textbox.update(value="", interactive=False)
-invisible_textbox = gr.Textbox.update(value="", interactive=False, visible=False)
+no_change_textbox = gr.Textbox()
+enable_textbox = gr.Textbox(interactive=True, visible=True)
+disable_textbox = gr.Textbox(interactive=False)
+clear_textbox = gr.Textbox(value="", interactive=False)
+invisible_textbox = gr.Textbox(value="", interactive=False, visible=False)
 
 controller_url = None
 enable_moderation = False
@@ -194,12 +217,12 @@ def get_model_list(
 
 def load_demo_single(models, url_params):
     selected_model = models[0] if len(models) > 0 else ""
-    if "model" in url_params:
-        model = url_params["model"]
-        if model in models:
-            selected_model = model
+    # if "model" in url_params:
+    #     model = url_params["model"]
+    #     if model in models:
+    #         selected_model = model
 
-    dropdown_update = gr.Dropdown.update(
+    dropdown_update = gr.Dropdown(
         choices=models, value=selected_model, visible=True
     )
 
@@ -267,11 +290,45 @@ def regenerate(state, request: gr.Request):
     return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5 + (disable_textbox,)
 
 
+def upvote_last_response_chatbot(state, reason_textbox, model_selector, request: gr.Request):
+    ip = get_ip(request)
+    logger.info(f"upvote. ip: {ip}")
+    vote_last_response(state, "upvote", reason_textbox, model_selector, request)
+    return ("",) + (disable_btn,) * 3 + (disable_textbox,)
+
+
+def downvote_last_response_chatbot(state, reason_textbox, model_selector, request: gr.Request):
+    ip = get_ip(request)
+    logger.info(f"downvote. ip: {ip}")
+    vote_last_response(state, "downvote", reason_textbox, model_selector, request)
+    return ("",) + (disable_btn,) * 3 + (disable_textbox,)
+
+
+def flag_last_response_chatbot(state, reason_textbox, model_selector, request: gr.Request):
+    ip = get_ip(request)
+    logger.info(f"flag. ip: {ip}")
+    vote_last_response(state, "flag", reason_textbox, model_selector, request)
+    return ("",) + (disable_btn,) * 3 + (disable_textbox,)
+
+
+def regenerate_chatbot(state, request: gr.Request):
+    ip = get_ip(request)
+    logger.info(f"regenerate. ip: {ip}")
+    state.conv.update_last_message(None)
+    return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5 + (disable_textbox,)
+
+def clear_history_chatbot(request: gr.Request):
+    ip = get_ip(request)
+    logger.info(f"clear_history. ip: {ip}")
+    state = None
+    return (state, [], "", gr(value=None, interactive=True)) + (disable_btn,) * 5 + (clear_textbox,)
+
+
 def clear_history(request: gr.Request):
     ip = get_ip(request)
     logger.info(f"clear_history. ip: {ip}")
     state = None
-    return (state, [], "", gr.update(value=None, interactive=True)) + (disable_btn,) * 5 + (clear_textbox,)
+    return (state, [], "", gr(value=None, interactive=True)) + (disable_btn,) * 5 + (clear_textbox,)
 
 
 def get_ip(request: gr.Request):
@@ -792,7 +849,7 @@ def build_single_model_ui(models, add_promotion_links=False):
     state = gr.State()
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
-    with gr.Box(elem_id="share-region-named", css = ".output-image, .input-image, .image-preview {height: 600px !important} "):
+    with gr.Blocks(elem_id="share-region-named", css = ".output-image, .input-image, .image-preview {height: 600px !important} "):
         with gr.Row(elem_id="model_selector_row"):
             model_selector = gr.Dropdown(
                 choices=models,
@@ -920,11 +977,216 @@ def build_single_model_ui(models, add_promotion_links=False):
     return [state, model_selector]
 
 
+def yes_man(message, history):
+    if message.endswith("?"):
+        return "Yes"
+    else:
+        return "Ask me anything!"
+    
+    
+def is_valid_video_filename(name):
+    video_extensions = ['avi', 'mp4', 'mov', 'mkv', 'flv', 'wmv', 'mjpeg']
+    
+    ext = name.split('.')[-1].lower()
+    
+    if ext in video_extensions:
+        return True
+    else:
+        return False
+
+def sample_frames(video_file, num_frames) :
+    video = cv2.VideoCapture(video_file)
+    total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    interval = total_frames // num_frames
+    frames = []
+    for i in range(total_frames):
+        ret, frame = video.read()
+        pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        if not ret:
+            continue
+        if i % interval == 0:
+            frames.append(pil_img)
+    video.release()
+    return frames
+
+def load_image(image_file):
+    if image_file.startswith("http") or image_file.startswith("https"):
+        response = requests.get(image_file)
+        if response.status_code == 200:
+            image = Image.open(BytesIO(response.content)).convert("RGB")
+        else:
+            print('failed to load the image')
+    else:
+        print('Load image from local file')
+        print(image_file)
+        image = Image.open(image_file).convert("RGB")
+        
+    return image
+
+def print_like_dislike(x: gr.LikeData):
+    print(x.index, x.value, x.liked)
+
+
+def add_message(history, message):
+    for x in message["files"]:
+        history.append(((x,), None))
+    if message["text"] is not None:
+        history.append((message["text"], None))
+    return history, gr.MultimodalTextbox(value=None, interactive=False)
+
+txt = gr.Textbox(
+    scale=4,
+    show_label=False,
+    placeholder="Enter text and press enter.",
+    container=False,
+)
+
+def build_single_model_chatbot(models, add_promotion_links=False):
+    promotion = (
+        f"""
+{HEADER_MD}
+
+## 🤖 Choose any model to chat
+"""
+        if add_promotion_links
+        else ""
+    )
+
+    info_markdown = f"""
+    {INFO_MD}
+    """
+
+    notice_markdown = f"""
+{promotion}
+"""
+
+    state = gr.State()
+    gr.Markdown(notice_markdown, elem_id="notice_markdown")
+
+    with gr.Blocks(elem_id="share-region-named", css = ".output-image, .input-image, .image-preview {height: 600px !important} "):
+        with gr.Row(elem_id="model_selector_row"):
+            model_selector = gr.Dropdown(
+                choices=models,
+                value=models[0] if len(models) > 0 else "",
+                interactive=True,
+                show_label=False,
+                container=False,
+            )
+        with gr.Row():
+            with gr.Accordion(
+                "🔍 Expand to see model descriptions",
+                open=False,
+                elem_id="model_description_accordion",
+            ):
+                model_description_md = get_model_description_md(models)
+                gr.Markdown(model_description_md, elem_id="model_description_markdown")
+
+
+    with gr.Blocks() as demo:
+        chatbot = gr.Chatbot(
+            [],
+            elem_id="chatbot",
+            bubble_full_width=False
+        )
+        chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image","video"], placeholder="Enter message or upload file...", show_label=False)
+        
+    with gr.Row():
+        reason_textbox = gr.Textbox(label="Reason", placeholder="Please input your reason for voting here before clicking the vote button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=False)
+            
+
+    with gr.Row():
+        upvote_btn = gr.Button(value="👍  Upvote", interactive=True)
+        downvote_btn = gr.Button(value="👎  Downvote", interactive=True)
+        flag_btn = gr.Button(value="⚠️  Flag", interactive=True)
+        #stop_btn = gr.Button(value="⏹️  Stop Generation", interactive=True)
+        regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=True)
+        clear_btn = gr.Button(value="🗑️  Clear history", interactive=True)
+
+    with gr.Accordion("⚙️ Parameters", open=False) as parameter_row:
+        temperature = gr.Slider(
+            minimum=0.0,
+            maximum=1.0,
+            value=0.7,
+            step=0.1,
+            interactive=True,
+            label="Temperature",
+        )
+        top_p = gr.Slider(
+            minimum=0.0,
+            maximum=1.0,
+            value=1.0,
+            step=0.1,
+            interactive=True,
+            label="Top P",
+        )
+        max_output_tokens = gr.Slider(
+            minimum=16,
+            maximum=2048,
+            value=1024,
+            step=64,
+            interactive=True,
+            label="Max output tokens",
+        )
+    with gr.Column():
+        gr.Examples(examples=[
+            [{"files": ["examples/ticket.png"], "text": "Which section's ticket would you recommend I purchase?"}], 
+            [{"files": ["examples/equation.png"], "text": "Can you derive Equation 6 from the image?"}],
+            [{"files": ["examples/map.png"], "text": "Given my horse's location on this map, what is the quickest route to reach it?"}],
+            [{"files": ["examples/timesquare.png"], "text": "What is the best way to commute from Trump Tower to the location shown in this image?"}]
+        ], inputs=[chat_input])
+    
+    # Register listeners
+    btn_list = [upvote_btn, downvote_btn, flag_btn, regenerate_btn, clear_btn]
+    upvote_btn.click(
+        upvote_last_response_chatbot,
+        [state, reason_textbox, model_selector],
+        [upvote_btn, downvote_btn, flag_btn, reason_textbox],
+    )
+    downvote_btn.click(
+        downvote_last_response_chatbot,
+        [state, reason_textbox, model_selector],
+        [chat_input, upvote_btn, downvote_btn, flag_btn, reason_textbox],
+    )
+    flag_btn.click(
+        flag_last_response_chatbot,
+        [state, reason_textbox, model_selector],
+        [chat_input, upvote_btn, downvote_btn, flag_btn, reason_textbox],
+    )
+    regenerate_btn.click(regenerate_chatbot, state, [state, chatbot, chat_input] + btn_list + [reason_textbox]).then(
+        bot_response,
+        [state, temperature, top_p, max_output_tokens],
+        [state, chatbot] + btn_list + [reason_textbox],
+    )
+    clear_btn.click(clear_history_chatbot, None, [state, chatbot, chat_input, chat_input] + btn_list + [reason_textbox])
+
+    model_selector.change(clear_history_chatbot, None, [state, chatbot, chat_input, chat_input] + btn_list + [reason_textbox])
+
+    
+    chat_input.submit(
+        add_text, [state, model_selector, chatbot, chat_input], [state, chatbot, chat_input] + btn_list + [reason_textbox]
+    ).then(
+        bot_response,
+        [state, temperature, top_p, max_output_tokens],
+        [state, chatbot] + btn_list + [reason_textbox],
+    ).then(
+        lambda: gr.MultimodalTextbox(interactive=True),
+        None,
+        [chat_input]
+    )
+    gr.Markdown(INFO_MD, elem_id="info_markdown")
+
+    return [state, model_selector]
+
 def build_demo(models):
+    if args.show_terms_of_use:
+        load_js = get_window_url_params_with_tos_js
+    else:
+        load_js = get_window_url_params_js
     with gr.Blocks(
         title="Chat with Open Multimodal Large Language Models",
         theme=gr.themes.Default(),
         css=block_css,
+        js=load_js,
     ) as demo:
         url_params = gr.JSON(visible=False)
 
@@ -933,11 +1195,6 @@ def build_demo(models):
         if args.model_list_mode not in ["once", "reload"]:
             raise ValueError(f"Unknown model list mode: {args.model_list_mode}")
 
-        if args.show_terms_of_use:
-            load_js = get_window_url_params_with_tos_js
-        else:
-            load_js = get_window_url_params_js
-
         demo.load(
             load_demo,
             [url_params],
@@ -945,7 +1202,7 @@ def build_demo(models):
                 state,
                 model_selector,
             ],
-            _js=load_js,
+            # _js=load_js,
         )
 
     return demo

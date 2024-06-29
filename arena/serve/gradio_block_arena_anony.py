@@ -75,8 +75,8 @@ def load_demo_side_by_side_anony(models_, url_params):
 
     states = (None,) * num_sides
     selector_updates = (
-        gr.Markdown.update(visible=True),
-        gr.Markdown.update(visible=True),
+        gr.Markdown(visible=True),
+        gr.Markdown(visible=True),
     )
 
     return states + selector_updates
@@ -475,7 +475,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
 
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
-    with gr.Box(elem_id="share-region-anony"):
+    with gr.Blocks(elem_id="share-region-anony"):
         with gr.Accordion("🔍 Expand to see all active models.", open=False):
             model_description_md = get_model_description_md(models)
             gr.Markdown(model_description_md, elem_id="model_description_markdown")
@@ -507,19 +507,6 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         with gr.Row():
             slow_warning = gr.Markdown("", elem_id="notice_markdown")
 
-        with gr.Row():
-            reason_textbox = gr.Textbox(label="Reason for your vote ⬇️", placeholder="Please input your reason for response preference here before clicking the model choice button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=True)
-        with gr.Row():
-            leftvote_btn = gr.Button(
-                value="👈  A is better", visible=False, interactive=False
-            )
-            rightvote_btn = gr.Button(
-                value="👉  B is better", visible=False, interactive=False
-            )
-            tie_btn = gr.Button(value="🤝  Tie", visible=False, interactive=False)
-            bothbad_btn = gr.Button(
-                value="👎  Both are bad", visible=False, interactive=False
-            )
     gr.Markdown("### 💬 Your input:")
     with gr.Row():
         textbox = gr.Textbox(
@@ -533,12 +520,26 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         )
         send_btn = gr.Button(value="Send", variant="primary", scale=0)
 
+    with gr.Row():
+        reason_textbox = gr.Textbox(label="Reason for your vote ⬇️", placeholder="Please input your reason for response preference here before clicking the model choice button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=True)
+    with gr.Row():
+        leftvote_btn = gr.Button(
+            value="👈  A is better", visible=False, interactive=False
+        )
+        rightvote_btn = gr.Button(
+            value="👉  B is better", visible=False, interactive=False
+        )
+        tie_btn = gr.Button(value="🤝  Tie", visible=False, interactive=False)
+        bothbad_btn = gr.Button(
+            value="👎  Both are bad", visible=False, interactive=False
+        )
+            
     with gr.Row() as button_row:
         sample_btn = gr.Button(value="🎲 Sample Input", interactive=True)
 
         clear_btn = gr.Button(value="🎲 New Round", interactive=False)
         regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False)
-        share_btn = gr.Button(value="📷  Share")
+        # share_btn = gr.Button(value="📷  Share")
 
     with gr.Accordion("⚙️ Parameters", open=False) as parameter_row:
         temperature = gr.Slider(
@@ -623,27 +624,27 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         None,
         states + chatbots + model_selectors + [textbox, imagebox] + btn_list + [reason_textbox] + [slow_warning],
     )
-    share_js = """
-function (a, b, c, d) {
-    const captureElement = document.querySelector('#share-region-anony');
-    html2canvas(captureElement)
-        .then(canvas => {
-            canvas.style.display = 'none'
-            document.body.appendChild(canvas)
-            return canvas
-        })
-        .then(canvas => {
-            const image = canvas.toDataURL('image/png')
-            const a = document.createElement('a')
-            a.setAttribute('download', 'chatbot-arena.png')
-            a.setAttribute('href', image)
-            a.click()
-            canvas.remove()
-        });
-    return [a, b, c, d];
-}
-"""
-    share_btn.click(share_click, states + model_selectors, [], _js=share_js)
+#     share_js = """
+# function (a, b, c, d) {
+#     const captureElement = document.querySelector('#share-region-anony');
+#     html2canvas(captureElement)
+#         .then(canvas => {
+#             canvas.style.display = 'none'
+#             document.body.appendChild(canvas)
+#             return canvas
+#         })
+#         .then(canvas => {
+#             const image = canvas.toDataURL('image/png')
+#             const a = document.createElement('a')
+#             a.setAttribute('download', 'chatbot-arena.png')
+#             a.setAttribute('href', image)
+#             a.click()
+#             canvas.remove()
+#         });
+#     return [a, b, c, d];
+# }
+# """
+#     share_btn.click(share_click, states + model_selectors, [], _js=share_js)
 
     textbox.submit(
         add_text,

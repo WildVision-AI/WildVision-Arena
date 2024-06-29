@@ -70,8 +70,8 @@ def load_demo_side_by_side_anony_bench(models_, url_params):
 
     states = (None,) * num_sides
     selector_updates = (
-        gr.Markdown.update(visible=True),
-        gr.Markdown.update(visible=True),
+        gr.Markdown(visible=True),
+        gr.Markdown(visible=True),
     )
 
     return states + selector_updates
@@ -450,7 +450,7 @@ This tab aims to test a pair of anonymous models on a randomly sampled example f
 
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
-    with gr.Box(elem_id="share-region-anony", css=block_css):
+    with gr.Blocks(elem_id="share-region-anony", css=block_css):
         with gr.Accordion("🔍 Expand to see Arena players", open=False):
             model_description_md = get_model_description_md(models)
             gr.Markdown(model_description_md, elem_id="model_description_markdown")

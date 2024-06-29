@@ -447,6 +447,7 @@ def build_demo(elo_results_file, leaderboard_table_file):
         title="Monitor",
         theme=gr.themes.Base(text_size=text_size),
         css=block_css,
+        js=get_window_url_params_js,
     ) as demo:
         with gr.Tabs() as tabs:
             with gr.Tab("Leaderboard", id=0):
@@ -464,7 +465,7 @@ def build_demo(elo_results_file, leaderboard_table_file):
             load_demo,
             [url_params],
             basic_components + leader_components,
-            _js=get_window_url_params_js,
+            # _js=get_window_url_params_js,
         )
 
     return demo
