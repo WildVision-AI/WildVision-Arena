@@ -4,6 +4,13 @@
 
 Follow [INSTALL](INSTALL.md) to install environments.
 
+You can quickly test model on gradio demo like below (take LLaVA as an example here):
+```
+python -m arena.serve.controller --host='127.0.0.1' --port 21002
+python3 -m arena.serve.model_worker --model-path liuhaotian/llava-v1.5-13b --controller http://127.0.0.1:21002 --port 31002 --worker http://127.0.0.1:31002 --host=127.0.0.1  --num-gpus 1
+python -m arena.serve.gradio_web_server_multi --share --port 8688 --controller-url http://127.0.0.1:21002
+```
+
 ## Gradio Demo
 
 Guideline:
