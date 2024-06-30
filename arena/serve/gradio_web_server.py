@@ -371,6 +371,59 @@ def add_text(state, model_selector, text, image, request: gr.Request):
     conv.set_image(image)
     return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5 + (disable_textbox,)
 
+def load_image(image_file):
+    if image_file.startswith("http") or image_file.startswith("https"):
+        response = requests.get(image_file)
+        if response.status_code == 200:
+            image = Image.open(BytesIO(response.content)).convert("RGB")
+        else:
+            print('failed to load the image')
+    else:
+        print('Load image from local file')
+        print(image_file)
+        image = Image.open(image_file).convert("RGB")
+        
+    return image
+
+def add_input_chatbot(state, model_selector, history, input, request: gr.Request):
+    ip = get_ip(request)
+    logger.info(f"add_input_chatbot. ip: {ip}.")
+
+    for x in input["files"]:
+        history.append(((x,), None))
+    if input["text"] is not None:
+        history.append((input["text"], None))
+        
+    if state is None:
+        state = State(model_selector)
+    text = input["text"]
+    if len(text) <= 0:
+        state.skip_next = True
+        return (state, state.to_gradio_chatbot(), "") + (no_change_btn,) * 5 + (no_change_textbox,)
+    flagged = moderation_filter(text, [state.model_name])
+    if flagged:
+        logger.info(f"violate moderation. ip: {ip}.")
+        # overwrite the original text
+        text = MODERATION_MSG
+
+    conv = state.conv
+    if (len(conv.messages) - conv.offset) // 2 >= CONVERSATION_TURN_LIMIT:
+        logger.info(f"conversation turn limit. ip: {ip}.")
+        state.skip_next = True
+        return (state, state.to_gradio_chatbot(), CONVERSATION_LIMIT_MSG) + (
+            no_change_btn,
+        ) * 5 + (no_change_textbox,)
+
+    text = text[:INPUT_CHAR_LEN_LIMIT]  # Hard cut-off
+    conv.append_message(conv.roles[0], text)
+    conv.append_message(conv.roles[1], None)
+    # TODO: support interleaved image
+    image = load_image(input["files"][0])
+    ic(type(image))
+    logger.info(f"type image{type(image)}")
+    conv.set_image(image)
+    ic(state, text)
+    return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
 
 def post_process_code(code):
     sep = "\n```"
@@ -483,7 +536,7 @@ def bot_response(
     temperature = float(temperature)
     top_p = float(top_p)
     max_new_tokens = int(max_new_tokens)
-    
+
     if state.skip_next:
         # This generate call is skipped due to invalid inputs
         state.skip_next = False
@@ -1026,14 +1079,6 @@ def load_image(image_file):
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
 
-
-def add_message(history, message):
-    for x in message["files"]:
-        history.append(((x,), None))
-    if message["text"] is not None:
-        history.append((message["text"], None))
-    return history, gr.MultimodalTextbox(value=None, interactive=False)
-
 txt = gr.Textbox(
     scale=4,
     show_label=False,
@@ -1163,16 +1208,17 @@ def build_single_model_chatbot(models, add_promotion_links=False):
 
     
     chat_input.submit(
-        add_text, [state, model_selector, chatbot, chat_input], [state, chatbot, chat_input] + btn_list + [reason_textbox]
+        add_input_chatbot, [state, model_selector, chatbot, chat_input], [state, chatbot, chat_input] + btn_list + [reason_textbox]
     ).then(
         bot_response,
         [state, temperature, top_p, max_output_tokens],
         [state, chatbot] + btn_list + [reason_textbox],
-    ).then(
-        lambda: gr.MultimodalTextbox(interactive=True),
-        None,
-        [chat_input]
     )
+    # .then(
+    #     lambda: gr.MultimodalTextbox(interactive=True),
+    #     None,
+    #     [chat_input]
+    # )
     gr.Markdown(INFO_MD, elem_id="info_markdown")
 
     return [state, model_selector]
