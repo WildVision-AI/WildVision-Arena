@@ -130,7 +130,7 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
         # theme=gr.themes.Default(text_size=text_size),
         theme=gr.themes.Soft(text_size=text_size),
         css=block_css,
-        js=load_js
+        # js=load_js
     ) as demo:
         with gr.Tabs() as tabs:
             with gr.Tab("⚔️ Arena ", elem_id="arena-tab", id=0):
@@ -301,8 +301,9 @@ if __name__ == "__main__":
 
     # Launch the demo
     demo = build_demo(models, args.elo_results_file, args.leaderboard_table_file)
+    # concurrency_count=args.concurrency_count, 
     demo.queue(
-        concurrency_count=args.concurrency_count, status_update_rate=10, api_open=False
+        status_update_rate=10, api_open=False
     ).launch(
         server_name=args.host,
         server_port=args.port,

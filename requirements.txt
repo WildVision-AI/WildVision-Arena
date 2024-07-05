@@ -59,7 +59,7 @@ google-api-core==2.16.2
 google-auth==2.27.0
 google-generativeai==0.3.2
 googleapis-common-protos==1.62.0
-gradio==3.50.2
+gradio==4.37.2
 gradio_client==0.6.1
 grpcio==1.60.1
 grpcio-status==1.60.1

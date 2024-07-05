@@ -32,7 +32,8 @@ SESSION_EXPIRATION_TIME = 3600
 MAX_REQUESTS_PER_DAY = 100
 RATE_LIMIT_PERIOD = timedelta(days=1)
 # The output dir of log files
-LOGDIR = os.getenv("WILDVISION_ARENA_LOGDIR", "/home/yuchenl/vision-arena-logs/")
+# LOGDIR = os.getenv("WILDVISION_ARENA_LOGDIR", "/home/yuchenl/vision-arena-logs/")
+LOGDIR = os.getenv("WILDVISION_ARENA_LOGDIR", "../log")
 # The WEB_IMG_FOLDER
 WEB_IMG_FOLDER = os.getenv("WEB_IMG_FOLDER", "/home/yuchenl/http_img/")
 # The WEB_IMG_URL_ROOT
@@ -293,7 +294,8 @@ OUTAGE_MODELS = ["llava-v1.6-vicuna-13b"]
 #     "solar-10.7b-instruct-v1.0",
 # ]
 
-DOWNLOAD_DATASET = os.getenv("DOWNLOAD_DATASET", "VISITBENCH,TOUCHSTONE")
+# DOWNLOAD_DATASET = os.getenv("DOWNLOAD_DATASET", "VISITBENCH,TOUCHSTONE")
+DOWNLOAD_DATASET = os.getenv("DOWNLOAD_DATASET", "NA")
 from datasets import load_dataset, concatenate_datasets
 # subset_category = random.choice(['Accounting', 'Agriculture', 'Architecture_and_Engineering', 'Art', 'Art_Theory', 'Basic_Medical_Science', 'Biology', 'Chemistry', 'Clinical_Medicine', 'Computer_Science', 'Design', 'Diagnostics_and_Laboratory_Medicine', 'Economics', 'Electronics', 'Energy_and_Power', 'Finance', 'Geography', 'History', 'Literature', 'Manage', 'Marketing', 'Materials', 'Math', 'Mechanical_Engineering', 'Music', 'Pharmacy', 'Physics', 'Psychology', 'Public_Health', 'Sociology'])
 # mmmu_datasets = load_dataset("MMMU/MMMU", subset_category, split="validation")
