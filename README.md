@@ -5,13 +5,98 @@
 Follow [INSTALL](INSTALL.md) to install environments.
 
 You can quickly test model on gradio demo like below (take LLaVA as an example here):
-```
+```bash
 export WILDVISION_ARENA_LOGDIR="../log"
 export DOWNLOAD_DATASET=NA
 python -m arena.serve.controller --host='127.0.0.1' --port 21002
 python3 -m arena.serve.model_worker --model-path liuhaotian/llava-v1.5-13b --controller http://127.0.0.1:21002 --port 31002 --worker http://127.0.0.1:31002 --host=127.0.0.1  --num-gpus 1
 python -m arena.serve.gradio_web_server_multi_new --share --port 8688 --controller-url http://127.0.0.1:21002
 ```
+
+## Custom API
+
+1. Add API_STREAM_ITER (notice that even though the function name are all stream_iter, model stream generation is optional)
+```python
+# `arena/serve/api_provider.py`, refer to `qwenvl_api_stream_iter`
+def your_api_stream_iter(model_name, conv, temperature, top_p, max_new_tokens, image):
+    messages = conv.to_yourapi_messages()
+    response = model(messages)
+    data = {
+        "text": response.output.choices[0].message.content[0]["text"],
+        "error_code": 0,
+    }
+    yield data
+```
+
+2. Add your API conv template (you can also apply exisiting one if it's the same).
+```python
+# `arena/conversation.py` refer to `to_qwenvlapi_messages`
+    def to_yourapi_messages(self):
+        """Convert the conversation to yourapi completion format."""
+        if self.system_message == "":
+            ret = []
+        else:
+            ret = [{"role": "system", "content": self.system_message}]
+
+        for i, (_, msg) in enumerate(self.messages[self.offset :]):
+            if i % 2 == 0:
+                ret.append({"role": "user", "content": [{"text": msg}, {"image": self.media_url}]})
+        return ret
+```
+And then remember to register your model accordingly.
+```python
+# `arena/conversation.py` refer to `QwenVLAPI template`
+register_conv_template(
+    Conversation(
+        name="your_model_name",
+        system_message="",
+        roles=("", ""),
+        sep_style=SeparatorStyle.RAW,
+    )
+)
+```
+
+3. Add your api stream to bot response.
+```python
+# `arena/serve/gradio_web_server.py` refer to qwenvl_api_stream_iter
+from arena.serve.api_provider import your_api_stream_iter
+def bot_response(
+    state,
+    temperature,
+    top_p,
+    max_new_tokens,
+    request: gr.Request,
+    apply_rate_limit=True,
+):
+    ...
+    elif model_name in [
+        "your_model_name"
+    ]:
+        stream_iter = your_api_stream_iter(
+            model_name, conv, temperature, top_p, max_new_tokens, image
+        )
+    ...
+```
+
+4. Add your model adapter
+```python
+# `arena/model/model_adapter.py`, refer to QwenVLAPIAdapter
+class YourAPIAdapter(BaseModelAdapter):
+    """The model adapter for YourAPI"""
+
+    def match(self, model_path: str):
+        return "your_model_name" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        return None, None
+    
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("your_model_name")
+
+register_model_adapter(YourAPIAdapter)
+```
+
+5. Test your model via Gradio Demo.
 
 ## Gradio Demo
 
