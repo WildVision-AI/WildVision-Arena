@@ -239,7 +239,7 @@ def add_text(
         states[i].conv.append_message(states[i].conv.roles[0], text)
         states[i].conv.append_message(states[i].conv.roles[1], None)
         states[i].skip_next = False
-        states[i].conv.set_image(image)
+        states[i].conv.set_vision_input(image)
     # states += image
     return (
         states

@@ -77,12 +77,14 @@ from arena.vlm_utils.llava.model.builder import load_pretrained_model
 from arena.vlm_utils.llava.utils import disable_torch_init
 from arena.vlm_utils.llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
-from PIL import Image
-
 import requests
 from PIL import Image
 from io import BytesIO
 from transformers import TextStreamer
+import cv2
+from icecream import ic
+
+os.environ.setdefault('TEMPORAL_CHUNK', 'uniform')
 
 logger = build_logger("gradio_web_server", "gradio_web_server.log")
 
@@ -368,7 +370,7 @@ def add_text(state, model_selector, text, image, request: gr.Request):
     conv.append_message(conv.roles[0], text)
     conv.append_message(conv.roles[1], None)
     logger.info(f"type image{type(image)}")
-    conv.set_image(image)
+    conv.set_vision_input(image)
     return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5 + (disable_textbox,)
 
 def load_image(image_file):
@@ -394,6 +396,8 @@ def add_input_chatbot(state, model_selector, history, input, request: gr.Request
     if input["text"] is not None:
         history.append((input["text"], None))
         
+    from icecream import ic
+    ic(input["files"])
     if state is None:
         state = State(model_selector)
     text = input["text"]
@@ -417,11 +421,19 @@ def add_input_chatbot(state, model_selector, history, input, request: gr.Request
     text = text[:INPUT_CHAR_LEN_LIMIT]  # Hard cut-off
     conv.append_message(conv.roles[0], text)
     conv.append_message(conv.roles[1], None)
-    # TODO: support interleaved image
-    image = load_image(input["files"][0])
-    ic(type(image))
-    logger.info(f"type image{type(image)}")
-    conv.set_image(image)
+    ic(os.path.splitext(input["files"][0])[1], os.path.splitext(input["files"][0])[1] in [".mp4"])
+    if os.path.splitext(input["files"][0])[1] in [".jpg", ".png"]:
+        # TODO: support interleaved image
+        image = load_image(input["files"][0])
+        ic(type(image))
+        logger.info(f"type image{type(image)}")
+        conv.set_vision_input(image)
+    elif os.path.splitext(input["files"][0])[1] in [".mp4"]:
+        video = load_and_transform_video(input["files"][0], get_video_transform("decord", 1), "decord")
+        ic(type(video))
+        logger.info(f"type video{type(video)}")
+        conv.set_vision_input(video)
+
     ic(state, text)
     return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
 
@@ -449,31 +461,45 @@ def model_worker_stream_iter(
     # Make requests
     # TODO: trans state
     import base64
-    from io import BytesIO
-    from PIL import Image
+    vision_input = conv.get_vision_input()
 
-    image = conv.get_image()
-    
-    from icecream import ic
-    im_file = BytesIO()
-    image.save(im_file, format="PNG") # TODO: fix; when not read from file, no format, default PNG
-    im_bytes = im_file.getvalue()  # im_bytes: image in binary format.
-    im_b64 = base64.b64encode(im_bytes)
+    # TODO: add interleave image
+    if isinstance(vision_input, Image.Image):
+        # single image
+        im_file = BytesIO()
+        vision_input.save(im_file, format="PNG") # TODO: fix; when not read from file, no format, default PNG
+        im_bytes = im_file.getvalue()  # im_bytes: image in binary format.
+        im_b64 = base64.b64encode(im_bytes)
 
-    ic(">>> send params")
-    gen_params = {
-        "model": model_name,
-        "prompt": {"text":prompt, "image": json.dumps(im_b64.decode("utf-8"))},
-        "temperature": temperature,
-        "repetition_penalty": repetition_penalty,
-        "top_p": top_p,
-        "max_new_tokens": max_new_tokens,
-        "stop": conv.stop_str,
-        "stop_token_ids": conv.stop_token_ids,
-        "echo": False,
-    }
-    input_text = gen_params["prompt"]["text"]
-    logger.info(f"==== model worker stream iter request ====\n{input_text}")
+        gen_params = {
+            "model": model_name,
+            "prompt": {"text":prompt, "image": json.dumps(im_b64.decode("utf-8"))},
+            "temperature": temperature,
+            "repetition_penalty": repetition_penalty,
+            "top_p": top_p,
+            "max_new_tokens": max_new_tokens,
+            "stop": conv.stop_str,
+            "stop_token_ids": conv.stop_token_ids,
+            "echo": False,
+        }
+        input_text = gen_params["prompt"]["text"]
+    elif isinstance(vision_input, torch.Tensor):
+        # video tensor
+        video_tensor_list = vision_input.tolist()
+        
+        gen_params = {
+            "model": model_name,
+            "prompt": {"text":prompt, "image":None, "video":json.dumps(video_tensor_list)},
+            "temperature": temperature,
+            "repetition_penalty": repetition_penalty,
+            "top_p": top_p,
+            "max_new_tokens": max_new_tokens,
+            "stop": conv.stop_str,
+            "stop_token_ids": conv.stop_token_ids,
+            "echo": False,
+        }
+        input_text = gen_params["prompt"]["text"]
+    logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output
     response = requests.post(
@@ -547,7 +573,7 @@ def bot_response(
     logger.info(f"conv: {conv}")
 
     ic(model_name)
-    image = conv.get_image()
+    image = conv.get_vision_input()
     if model_name in [
         "gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo",
     ]:
@@ -762,12 +788,15 @@ def bot_response(
 
     finish_tstamp = time.time()
     logger.info(f"{output}")
-    # TODO: uncomment to save image for each conversation
-    input_image = conv.get_image()
-    IMGDIR = os.path.join(LOGDIR, os.path.splitext(os.path.basename(get_conv_log_filename()))[0] + "input_images")
-    if not os.path.exists(IMGDIR): os.makedirs(IMGDIR)
-    # input_image.save(os.path.join(IMGDIR, f"input_image_{int(finish_tstamp)}.png"))
-    input_image.save(os.path.join(IMGDIR, f"input_image_{state.conv_id}_{round(finish_tstamp, 4)}.png"))
+    # uncomment to save image for each conversation
+    vision_input = conv.get_vision_input()
+    if isinstance(vision_input, Image.Image):
+        IMGDIR = os.path.join(LOGDIR, os.path.splitext(os.path.basename(get_conv_log_filename()))[0] + "input_images")
+        if not os.path.exists(IMGDIR): os.makedirs(IMGDIR)
+        # input_image.save(os.path.join(IMGDIR, f"input_image_{int(finish_tstamp)}.png"))
+        vision_input.save(os.path.join(IMGDIR, f"input_image_{state.conv_id}_{round(finish_tstamp, 4)}.png"))
+
+    # TODO: add save video for each conversation!
 
     with open(get_conv_log_filename(), "a") as fout:
         data = {
@@ -973,12 +1002,20 @@ def build_single_model_ui(models, add_promotion_links=False):
             interactive=True,
             label="Max output tokens",
         )
-    gr.Examples(examples=[
-        ["examples/ticket.png", "Which section's ticket would you recommend I purchase?"], 
-        ["examples/equation.png", "Can you derive Equation 6 from the image?"],
-        ["examples/map.png", "Given my horse's location on this map, what is the quickest route to reach it?"],
-        ["examples/timesquare.png", "What is the best way to commute from Trump Tower to the location shown in this image?"]
-    ], inputs=[imagebox, textbox])
+    with gr.Row():
+        # gr.Examples(
+        #     examples=[
+        #         ["examples/ticket.png", "Which section's ticket would you recommend I purchase?"]
+        #     ], inputs=[imagebox, textbox]
+        # )
+        gr.Examples(
+            examples=[
+                ["examples/ticket.png", "Which section's ticket would you recommend I purchase?"], 
+                ["examples/equation.png", "Can you derive Equation 6 from the image?"],
+                ["examples/map.png", "Given my horse's location on this map, what is the quickest route to reach it?"],
+                ["examples/timesquare.png", "What is the best way to commute from Trump Tower to the location shown in this image?"]
+            ], inputs=[imagebox, textbox]
+        )
     gr.Markdown(INFO_MD, elem_id="info_markdown")
     if add_promotion_links:
         gr.Markdown(acknowledgment_md, elem_id="ack_markdown")
@@ -1076,6 +1113,111 @@ def load_image(image_file):
         
     return image
 
+import decord
+from decord import VideoReader, cpu
+from torchvision import transforms
+from transformers import ProcessorMixin, BatchEncoding
+from transformers.image_processing_utils import BatchFeature
+from pytorchvideo.data.encoded_video import EncodedVideo
+from torchvision.transforms import Compose, Lambda, ToTensor
+from torchvision.transforms._transforms_video import NormalizeVideo, RandomCropVideo, RandomHorizontalFlipVideo, CenterCropVideo
+from pytorchvideo.transforms import ApplyTransformToKey, ShortSideScale, UniformTemporalSubsample
+OPENAI_DATASET_MEAN = (0.48145466, 0.4578275, 0.40821073)
+OPENAI_DATASET_STD = (0.26862954, 0.26130258, 0.27577711)
+
+def get_video_transform(video_decode_backend, num_frames):
+    if video_decode_backend == 'pytorchvideo':
+        transform = ApplyTransformToKey(
+            key="video",
+            transform=Compose(
+                [
+                    UniformTemporalSubsample(num_frames),
+                    Lambda(lambda x: x / 255.0),
+                    NormalizeVideo(mean=OPENAI_DATASET_MEAN, std=OPENAI_DATASET_STD),
+                    ShortSideScale(size=224),
+                    CenterCropVideo(224),
+                    RandomHorizontalFlipVideo(p=0.5),
+                ]
+            ),
+        )
+
+    elif video_decode_backend == 'decord':
+
+        transform = Compose(
+            [
+                # UniformTemporalSubsample(num_frames),
+                Lambda(lambda x: x / 255.0),
+                NormalizeVideo(mean=OPENAI_DATASET_MEAN, std=OPENAI_DATASET_STD),
+                ShortSideScale(size=224),
+                CenterCropVideo(224),
+                RandomHorizontalFlipVideo(p=0.5),
+            ]
+        )
+
+    elif video_decode_backend == 'opencv':
+        transform = Compose(
+            [
+                # UniformTemporalSubsample(num_frames),
+                Lambda(lambda x: x / 255.0),
+                NormalizeVideo(mean=OPENAI_DATASET_MEAN, std=OPENAI_DATASET_STD),
+                ShortSideScale(size=224),
+                CenterCropVideo(224),
+                RandomHorizontalFlipVideo(p=0.5),
+            ]
+        )
+    else:
+        raise NameError('video_decode_backend should specify in (pytorchvideo, decord, opencv)')
+    return transform
+
+def load_and_transform_video(
+        video_path,
+        transform,
+        video_decode_backend='opencv',
+        clip_start_sec=0.0,
+        clip_end_sec=None,
+        num_frames=8,
+):
+    if video_decode_backend == 'pytorchvideo':
+        #  decord pyav
+        video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
+        duration = video.duration
+        start_sec = clip_start_sec  # secs
+        end_sec = clip_end_sec if clip_end_sec is not None else duration  # secs
+        video_data = video.get_clip(start_sec=start_sec, end_sec=end_sec)
+        video_outputs = transform(video_data)
+
+    elif video_decode_backend == 'decord':
+        decord.bridge.set_bridge('torch')
+        decord_vr = VideoReader(video_path, ctx=cpu(0))
+        use_temporal_chunk = os.environ['TEMPORAL_CHUNK']
+        if use_temporal_chunk:
+            chunk = int(len(decord_vr) / 3)
+            frame_id_list = np.linspace(chunk*2, len(decord_vr)-1, num_frames, dtype=int)            
+        else:
+            duration = len(decord_vr)
+            frame_id_list = np.linspace(0, duration-1, num_frames, dtype=int)
+        video_data = decord_vr.get_batch(frame_id_list)
+        video_data = video_data.permute(3, 0, 1, 2)  # (T, H, W, C) -> (C, T, H, W)
+        video_outputs = transform(video_data)
+
+    elif video_decode_backend == 'opencv':
+        cv2_vr = cv2.VideoCapture(video_path)
+        duration = int(cv2_vr.get(cv2.CAP_PROP_FRAME_COUNT))
+        frame_id_list = np.linspace(0, duration-1, num_frames, dtype=int)
+
+        video_data = []
+        for frame_idx in frame_id_list:
+            cv2_vr.set(1, frame_idx)
+            _, frame = cv2_vr.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            video_data.append(torch.from_numpy(frame).permute(2, 0, 1))
+        cv2_vr.release()
+        video_data = torch.stack(video_data, dim=1)
+        video_outputs = transform(video_data)
+    else:
+        raise NameError('video_decode_backend should specify in (pytorchvideo, decord, opencv)')
+    return video_outputs
+
 def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
 
@@ -1172,14 +1314,18 @@ def build_single_model_chatbot(models, add_promotion_links=False):
             interactive=True,
             label="Max output tokens",
         )
-    with gr.Column():
+    with gr.Row():
+        gr.Examples(examples=[
+            [{"files": ["examples/dancing.mp4"], "text": "Describe the video."}]
+        ], inputs=[chat_input])
+
         gr.Examples(examples=[
             [{"files": ["examples/ticket.png"], "text": "Which section's ticket would you recommend I purchase?"}], 
             [{"files": ["examples/equation.png"], "text": "Can you derive Equation 6 from the image?"}],
             [{"files": ["examples/map.png"], "text": "Given my horse's location on this map, what is the quickest route to reach it?"}],
             [{"files": ["examples/timesquare.png"], "text": "What is the best way to commute from Trump Tower to the location shown in this image?"}]
         ], inputs=[chat_input])
-    
+
     # Register listeners
     btn_list = [upvote_btn, downvote_btn, flag_btn, regenerate_btn, clear_btn]
     upvote_btn.click(

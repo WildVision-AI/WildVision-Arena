@@ -25,7 +25,6 @@ from arena.conversation import Conversation, get_conv_template
 from arena.utils import get_gpu_memory
 
 from icecream import ic
-from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
 
 # Check an environment variable to check if we should be sharing Peft model
 # weights.  When false we treat all Peft models as separate.
@@ -143,17 +142,9 @@ import warnings
 import shutil
 import torch
 import threading
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers import CLIPImageProcessor
-from arena.vlm_utils.llava import LlavaLlamaForCausalLM, LlavaMptForCausalLM, LlavaMistralForCausalLM
-from arena.vlm_utils.llava.constants import DEFAULT_IMAGE_TOKEN, IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
-from arena.vlm_utils.llava.model import *
 
 
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig
 import torch
-from icecream import ic
-
 
 def get_model_name(model_path):
     # get model name
@@ -167,13 +158,12 @@ def get_model_name(model_path):
     
     return model_name
 
-
-from transformers.generation import GenerationConfig
 def load_qwen_pretrained_model(
     model_path: str,
     device: str = "cuda",
     dtype: Optional[torch.dtype] = None,
 ):
+    from transformers.generation import GenerationConfig
     torch.manual_seed(1234)
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(model_path, device_map="cuda", trust_remote_code=True).eval()
@@ -187,6 +177,7 @@ def load_blip_pretrained_model(
     model_path: str,
     device: str = "cuda",
 ):
+    from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
     model = InstructBlipForConditionalGeneration.from_pretrained(model_path)
     processor = InstructBlipProcessor.from_pretrained(model_path)
 
@@ -194,13 +185,13 @@ def load_blip_pretrained_model(
 
     return model, processor
 
-from transformers import AutoModel, AutoProcessor
-from transformers import pipeline
 
 def load_tinyllava_pretrained_model(
     model_path: str,
     device: str = "cuda",
 ):
+    from transformers import AutoModel, AutoProcessor
+    from transformers import pipeline
     model_id = model_path
     pipe = pipeline("image-to-text", model=model_id, device=device)
     return pipe
@@ -262,6 +253,7 @@ def load_uform_pretrained_model(
     model_path: str,
     device: str = "cuda",
 ):
+    from transformers import AutoProcessor
     model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
 
@@ -284,12 +276,20 @@ def load_idefics_pretrained_model(
 
     return model, processor
 
+
+try:
+    from arena.vlm_utils.llava.model import *
+except ImportError as e:
+    print(f"Failed to import: {e}")
+    # raise
 def load_llava_pretrained_model(
     model_path: str,
     device: str = "cuda",
     load_8bit: bool = False,
     **kwargs,
 ):
+    from arena.vlm_utils.llava import LlavaLlamaForCausalLM, LlavaMptForCausalLM, LlavaMistralForCausalLM
+    from arena.vlm_utils.llava.constants import DEFAULT_IMAGE_TOKEN, IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
     # FIXME: parameters
     use_flash_attn = False
 
@@ -577,8 +577,13 @@ def get_conversation_template(model_path: str) -> Conversation:
     adapter = get_model_adapter(model_path)
     return adapter.get_default_conv_template(model_path)
 
-
-def get_generate_stream_function(model: torch.nn.Module, model_path: str, image_processor: Optional[CLIPImageProcessor] = None, tokenizer: Optional[AutoTokenizer] = None):
+# try:
+#     from transformers import CLIPImageProcessor
+# except ImportError as e:
+#     print(f"Failed to import: {e}")
+#     # raise
+# def get_generate_stream_function(model: torch.nn.Module, model_path: str, image_processor: Optional[CLIPImageProcessor] = None, tokenizer: Optional[AutoTokenizer] = None):
+def get_generate_stream_function(model_path: str):
     """Get the generate_stream function for inference."""
     from arena.serve.inference import generate_stream
 
@@ -593,6 +598,7 @@ def get_generate_stream_function(model: torch.nn.Module, model_path: str, image_
     is_yivl_stream = "yi-vl" in model_path.lower()
     is_idefics_stream = "idefics2-local" in model_path.lower()
     
+    is_videollava_stream = "video-llava" in model_path.lower()
     ic(model_path)
     if is_llavav15_stream:
         from arena.model.model_llava import generate_stream_llava_v15
@@ -618,12 +624,15 @@ def get_generate_stream_function(model: torch.nn.Module, model_path: str, image_
     elif is_bunny_stream:
         from arena.model.model_bunny import generate_stream_bunny
         return generate_stream_bunny
-    elif is_yivl_stream:
-        from arena.model.model_yivl import generate_stream_yivl
-        return generate_stream_yivl
+    # elif is_yivl_stream:
+    #     from arena.model.model_yivl import generate_stream_yivl
+    #     return generate_stream_yivl
     elif is_idefics_stream:
         from arena.model.model_idefics import generate_stream_idefics
         return generate_stream_idefics
+    elif is_videollava_stream:
+        from arena.model.model_videollava import generate_stream_videollava
+        return generate_stream_videollava
     else:
         return generate_stream
 
@@ -885,6 +894,15 @@ class MiniCPMAPIAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("minicpm-llama3-v")
 
+class VideoLLaVAAdapter(BaseModelAdapter):
+    """The model adapter for LanguageBind/Video-LLaVA-7B"""
+
+    def match(self, model_path: str):
+        return "video-llava" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("video-llava")
+    
 # Note: the registration order matters.
 # The one registered earlier has a higher matching priority.
 register_model_adapter(ClaudeAdapter)
@@ -906,5 +924,6 @@ register_model_adapter(RekaAdapter)
 register_model_adapter(IdeficsAdapter)
 register_model_adapter(MiniCPMAPIAdapter)
 register_model_adapter(QwenVLAPIAdapter)
+register_model_adapter(VideoLLaVAAdapter)
 # After all adapters, try the default base adapter.
 register_model_adapter(BaseModelAdapter)

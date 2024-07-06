@@ -91,6 +91,7 @@ def load_and_transform_video(
         decord_vr = VideoReader(video_path, ctx=cpu(0))
 
         import os
+        os.environ.setdefault('TEMPORAL_CHUNK', 'uniform')
         use_temporal_chunk = os.environ['TEMPORAL_CHUNK']
         if use_temporal_chunk:
             chunk = int(len(decord_vr) / 3)

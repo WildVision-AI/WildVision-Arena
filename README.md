@@ -281,7 +281,8 @@ Take model [LanguageBind/Video-LLaVA-7B](https://huggingface.co/LanguageBind/Vid
 ```bash
 conda env create -f model_config/videollava.yml
 conda activate arena-videollava
-# Test your enviroment by run inference: 
+# Test your enviroment by run inference: python inference/test_videollava.py
+# Notice that for VideoLLM, port number start from 32001
 CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path LanguageBind/Video-LLaVA-7B --controller http://127.0.0.1:21002 --port 32001 --worker http://127.0.0.1:32001 --host=127.0.0.1  --num-gpus 1
 ```
 

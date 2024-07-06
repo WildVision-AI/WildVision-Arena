@@ -86,6 +86,8 @@ class ModelWorker(BaseModelWorker):
         self.is_bunny_stream = "bunny" in model_path.lower()
         self.is_yivl_stream = "yi-vl" in model_path.lower() and not "plus" in model_path.lower()
         self.is_idefics_stream = "idefics2-local" in model_path.lower()
+        self.is_videollava_stream = "video-llava" in model_path.lower()
+
         if self.is_llava_stream or self.is_llavav15_stream:
             self.tokenizer, self.model, self.image_processor, self.context_len = load_llava_pretrained_model(
                 model_path,
@@ -130,6 +132,15 @@ class ModelWorker(BaseModelWorker):
             self.model, self.tokenizer, self.image_processor = load_yivl_pretrained_model(
                 model_path,               
             )
+        elif self.is_videollava_stream:
+            # model_path = 'LanguageBind/Video-LLaVA-7B'
+            cache_dir = 'cache_dir'
+            device = 'cuda'
+            load_4bit, load_8bit = True, False
+            from arena.vlm_utils.videollava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+            model_name = get_model_name_from_path(model_path)
+            from arena.vlm_utils.videollava.model.builder import load_pretrained_model
+            self.tokenizer, self.model, self.processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit, device=device, cache_dir=cache_dir)
         else:
             self.model, self.tokenizer = load_model(
                 model_path,
@@ -151,7 +162,8 @@ class ModelWorker(BaseModelWorker):
             self.context_len = get_context_length(self.model.config)
         except:
             self.context_len = 1024
-        self.generate_stream_func = get_generate_stream_function(self.model, model_path)
+        # self.generate_stream_func = get_generate_stream_function(self.model, model_path)
+        self.generate_stream_func = get_generate_stream_function(model_path)
         self.stream_interval = stream_interval
         self.embed_in_truncate = embed_in_truncate
         self.seed = seed
@@ -255,6 +267,29 @@ class ModelWorker(BaseModelWorker):
                     if "logprobs" in output:
                         ret["logprobs"] = output["logprobs"]
                     yield json.dumps(ret).encode() + b"\0"
+            elif self.is_videollava_stream:
+                for output in self.generate_stream_func(
+                    self.model,
+                    self.tokenizer,
+                    self.processor,
+                    params,
+                    self.device,
+                    self.context_len,
+                    self.stream_interval,
+                ):
+                    # from icecream import ic
+                    # ic(output, type(output))
+                    ret = {
+                        "text": output["text"],
+                        "error_code": 0,
+                    }
+                    if "usage" in output:
+                        ret["usage"] = output["usage"]
+                    if "finish_reason" in output:
+                        ret["finish_reason"] = output["finish_reason"]
+                    if "logprobs" in output:
+                        ret["logprobs"] = output["logprobs"]
+                    yield json.dumps(ret).encode() + b"\0"  
             else:
                 for output in self.generate_stream_func(
                     self.model,

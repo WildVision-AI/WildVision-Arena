@@ -339,10 +339,10 @@ class Conversation:
             raise ValueError(f"Invalid style: {self.sep_style}")
     
     # TODO: better way to handle image
-    def set_image(self, image):
+    def set_vision_input(self, image):
         self.image = image
 
-    def get_image(self):
+    def get_vision_input(self):
         return self.image
     
     def set_media_url(self, media_url):
@@ -1853,6 +1853,17 @@ register_conv_template(
         sep_style=SeparatorStyle.IDEFICS_SEPSTYLE,
     )
 )
+
+# ======== VideoLLM ========
+register_conv_template(
+    Conversation(
+        name="video-llava",
+        system_message="",
+        roles=("", ""),
+        sep_style=SeparatorStyle.RAW,
+    )
+)
+
 
 if __name__ == "__main__":
     from arena.conversation import get_conv_template

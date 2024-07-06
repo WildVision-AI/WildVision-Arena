@@ -366,6 +366,8 @@ def chat_loop(
     is_qwenvl_stream = "qwen-vl-chat" in model_path.lower()
     is_blip_stream = "blip" in model_path.lower()
 
+    is_videollava_stream = "video-llava" in model_path.lower()
+
     if is_llava_stream or is_llavav15_stream or is_qwenvl_stream:
         tokenizer, model, image_processor, context_len = load_model(
             model_path,
@@ -378,7 +380,18 @@ def chat_loop(
             revision=revision,
             debug=debug,
         )
-        
+    elif is_videollava_stream:
+        tokenizer, model, processor, context_len = load_model(
+            model_path,
+            device=device,
+            num_gpus=num_gpus,
+            max_gpu_memory=max_gpu_memory,
+            dtype=dtype,
+            load_8bit=load_8bit,
+            cpu_offloading=cpu_offloading,
+            revision=revision,
+            debug=debug,
+        )   
     else:
         model, tokenizer = load_model(
             model_path,
@@ -392,10 +405,13 @@ def chat_loop(
             debug=debug,
         )
     
-    if is_llava_stream or is_llavav15_stream or is_qwenvl_stream or is_blip_stream:
-        generate_stream_func = get_generate_stream_function(model, model_path, image_processor, tokenizer)
-    else:
-        generate_stream_func = get_generate_stream_function(model, model_path)
+    # if is_llava_stream or is_llavav15_stream or is_qwenvl_stream or is_blip_stream:
+    #     generate_stream_func = get_generate_stream_function(model, model_path, image_processor, tokenizer)
+    # elif is_videollava_stream:
+    #     generate_stream_func = get_generate_stream_function(model, model_path, processor, tokenizer)
+    # else:
+    #     generate_stream_func = get_generate_stream_function(model, model_path)
+    generate_stream_func = get_generate_stream_function(model_path)
 
     model_type = str(type(model)).lower()
     is_t5 = "t5" in model_type

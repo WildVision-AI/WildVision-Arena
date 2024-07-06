@@ -1,74 +1,78 @@
 import torch
-from PIL import Image
-import json
-import base64
-from io import BytesIO
 from icecream import ic
+from arena.vlm_utils.videollava.utils import disable_torch_init
 
-from transformers import AutoModelForCausalLM
-
-
-
+from arena.vlm_utils.videollava.model.builder import load_pretrained_model
+from arena.vlm_utils.videollava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+from arena.vlm_utils.videollava.conversation import conv_templates, SeparatorStyle
+from arena.vlm_utils.videollava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN
 
 @torch.inference_mode()
-def generate_stream_videollava(model, tokenizer, image_processor, params, device, context_len, stream_interval, judge_sent_end=False):
-    pipe = model
-    
+def generate_stream_videollava(model, tokenizer, processor, params, device, context_len, stream_interval, judge_sent_end=False):
     prompt = params["prompt"]["text"]
-    im_b64 = json.loads(params["prompt"]["image"])
-    im_bytes = base64.b64decode(im_b64)
-    im_file = BytesIO(im_bytes)
-    image = Image.open(im_file)
     
     temperature = float(params.get("temperature", 0.2))
     top_p = float(params.get("top_p", 0.7))
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
         
-    # vl_chat_processor: VLChatProcessor = VLChatProcessor.from_pretrained(model_path)
-    # tokenizer = vl_chat_processor.tokenizer
+    import json
+    vision_input = torch.tensor(json.loads(params["prompt"]["video"]))
+    
+    # conversation = [
+    #     {
+    #         "role": "User",
+    #         "content": f"<image_placeholder>{prompt}",
+    #         "images": [""]
+    #     },
+    #     {
+    #         "role": "Assistant",
+    #         "content": ""
+    #     }
+    # ]
+    ic(">>> generate_stream_videollava")
 
-    # vl_gpt: MultiModalityCausalLM = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
-    # vl_gpt = vl_gpt.to(torch.bfloat16).cuda().eval()
-    vl_gpt, tokenizer, vl_chat_processor = model, tokenizer, image_processor
+    disable_torch_init()
+    # video = '/private/home/yujielu/downloads/datasets/VideoChatGPT/Test_Videos/v__B7rGFDRIww.mp4'
+    inp = prompt#'Why is this video funny?'
+    # model_path = 'LanguageBind/Video-LLaVA-7B'
+    # cache_dir = 'cache_dir'
+    # device = 'cuda'
+    # load_4bit, load_8bit = True, False
+    # model_name = get_model_name_from_path(model_path)
+    # tokenizer, model, processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit, device=device, cache_dir=cache_dir)
+    video_processor = processor['video']
+    conv_mode = "llava_v1"
+    conv = conv_templates[conv_mode].copy()
+    roles = conv.roles
 
-    conversation = [
-        {
-            "role": "User",
-            "content": f"<image_placeholder>{prompt}",
-            "images": [""]
-        },
-        {
-            "role": "Assistant",
-            "content": ""
-        }
-    ]
+    # video_tensor = video_processor(video, return_tensors='pt')['pixel_values']
+    video_tensor = torch.stack([vision_input])
+    if type(video_tensor) is list:
+        tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
+    else:
+        tensor = video_tensor.to(model.device, dtype=torch.float16)
 
-    # load images and prepare for inputs
-    pil_images = [image] #load_pil_images(conversation)
-    prepare_inputs = vl_chat_processor(
-        conversations=conversation,
-        images=pil_images,
-        force_batchify=True
-    ).to(vl_gpt.device)
+    print(f"{roles[1]}: {inp}")
+    inp = ' '.join([DEFAULT_IMAGE_TOKEN] * model.get_video_tower().config.num_frames) + '\n' + inp
+    conv.append_message(conv.roles[0], inp)
+    conv.append_message(conv.roles[1], None)
+    prompt = conv.get_prompt()
+    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
+    stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
+    keywords = [stop_str]
+    stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
 
-    # run image encoder to get the image embeddings
-    inputs_embeds = vl_gpt.prepare_inputs_embeds(**prepare_inputs)
+    with torch.inference_mode():
+        output_ids = model.generate(
+            input_ids,
+            images=tensor,
+            do_sample=do_sample,
+            temperature=temperature,
+            max_new_tokens=max_new_tokens,
+            use_cache=True,
+            stopping_criteria=[stopping_criteria])
 
-    # run the model to get the response
-    outputs = vl_gpt.language_model.generate(
-        inputs_embeds=inputs_embeds,
-        attention_mask=prepare_inputs.attention_mask,
-        pad_token_id=tokenizer.eos_token_id,
-        bos_token_id=tokenizer.bos_token_id,
-        eos_token_id=tokenizer.eos_token_id,
-        max_new_tokens=max_new_tokens,
-        temperature=temperature,
-        top_p=top_p,
-        do_sample=do_sample,
-        use_cache=True
-    )
+    outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
 
-    answer = tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)
-    # print(f"{prepare_inputs['sft_format'][0]}", answer)
-    yield {"text": answer}
+    yield {"text": outputs}
