@@ -1,9 +1,9 @@
 # WildVision-Arena
 
-## Quick Start
-
+## Enviroment
 Follow [INSTALL](INSTALL.md) to install environments.
 
+## Quick Start for Image LLM
 You can quickly test model on gradio demo like below (take LLaVA as an example here):
 ```bash
 export WILDVISION_ARENA_LOGDIR="../log"
@@ -12,6 +12,19 @@ python -m arena.serve.controller --host='127.0.0.1' --port 21002
 python3 -m arena.serve.model_worker --model-path liuhaotian/llava-v1.5-13b --controller http://127.0.0.1:21002 --port 31002 --worker http://127.0.0.1:31002 --host=127.0.0.1  --num-gpus 1
 python -m arena.serve.gradio_web_server_multi_new --share --port 8688 --controller-url http://127.0.0.1:21002
 ```
+
+## Quick Start for Video LLM
+You can quickly test model on gradio demo like below (take Video-LLaVA as an example here):
+```bash
+export WILDVISION_ARENA_LOGDIR="../log"
+export DOWNLOAD_DATASET=NA
+python -m arena.serve.controller --host='127.0.0.1' --port 21002
+python3 -m arena.serve.model_worker --model-path LanguageBind/Video-LLaVA-7B --controller http://127.0.0.1:21002 --port 32001 --worker http://127.0.0.1:32001 --host=127.0.0.1  --num-gpus 1
+python -m arena.serve.gradio_web_server_multi_new --share --port 8688 --controller-url http://127.0.0.1:21002
+```
+
+Navigate to Tab `Direct Chat` to chat with Video-LLaVA. You can click video example on the left column from `Examples` to load an video question answer.
+
 
 ## Custom API
 1. Add API_STREAM_ITER (notice that even though the function name are all stream_iter, model stream generation is optional)
