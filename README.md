@@ -301,11 +301,21 @@ CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path Language
 
 
 **[VideoLLaMA2](https://github.com/DAMO-NLP-SG/VideoLLaMA2)**
-Take model [DAMO-NLP-SG/VideoLLaMA2-7B](https://huggingface.co/DAMO-NLP-SG/VideoLLaMA2-7B) as an example.
+Take model [DAMO-NLP-SG/VideoLLaMA2-7B](https://drive.google.com/drive/u/0/folders/1-P7p-tq5aXZzSoefEJx4PSFKH8jt8KWy) as an example.
 ```bash
-
+conda env create -f model_config/videollama2.yml
+conda activate arena-videollama2
+CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path DAMO-NLP-SG/VideoLLaMA2-7B --controller http://127.0.0.1:21002 --port 32002 --worker http://127.0.0.1:32002 --host=127.0.0.1  --num-gpus 1
 ```
 
+**[LITA](https://github.com/NVlabs/LITA)**
+Take model [LITA-13B-v1.3](https://huggingface.co/LanguageBind/Video-LLaVA-7B) as an example.
+```bash
+conda env create -f model_config/lita.yml
+conda activate arena-lita
+# Test your enviroment by run inference: python inference/test_lita.py --model-path /private/home/yujielu/downloads/weights/lita-vicuna-v1-3-13b-finetune --visual-path /private/home/yujielu/project/WildVision-Arena/examples/dancing.mp4 --visual-data-type video
+CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path LITA-13B-v1.3 --controller http://127.0.0.1:21002 --port 32003 --worker http://127.0.0.1:32003 --host=127.0.0.1  --num-gpus 1
+```
 
 
 ### Start the Web Server
