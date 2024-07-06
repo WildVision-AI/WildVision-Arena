@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 
 *convinput_images/
+cache_dir/

@@ -114,7 +114,7 @@ python -m arena.serve.controller --host='127.0.0.1' --port 21002 &
 
 ```
 
-### Launch the Model Worker
+### Launch the Image-Text Model Worker
 **GPT4V, GeminiPro, Claude, Yi-VL-PLUS, Reka**
 ```bash
 export GOOGLE_API_KEY=YOUR_API_KEY
@@ -273,6 +273,26 @@ GCP_IP=34.19.37.54
 LOCAL_PORT_IDEFICS2=31013 # must be a public port such that the GCP_IP can access it
 CUDA_VISIBLE_DEVICES=0 python -m arena.serve.model_worker --model-path idefics2 --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_IDEFICS2 --worker http://127.0.0.1:${LOCAL_PORT_IDEFICS2} --host=0.0.0.0 &
 ```
+
+### Launch the Video Text Model Worker
+
+**[Video-LLaVA](https://github.com/PKU-YuanGroup/Video-LLaVA)**
+Take model [LanguageBind/Video-LLaVA-7B](https://huggingface.co/LanguageBind/Video-LLaVA-7B) as an example.
+```bash
+conda env create -f model_config/videollava.yml
+conda activate arena-videollava
+# Test your enviroment by run inference: 
+CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path LanguageBind/Video-LLaVA-7B --controller http://127.0.0.1:21002 --port 32001 --worker http://127.0.0.1:32001 --host=127.0.0.1  --num-gpus 1
+```
+
+
+**[VideoLLaMA2](https://github.com/DAMO-NLP-SG/VideoLLaMA2)**
+Take model [DAMO-NLP-SG/VideoLLaMA2-7B](https://huggingface.co/DAMO-NLP-SG/VideoLLaMA2-7B) as an example.
+```bash
+
+```
+
+
 
 ### Start the Web Server
 

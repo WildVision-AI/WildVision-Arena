@@ -294,34 +294,34 @@ def upvote_last_response_chatbot(state, reason_textbox, model_selector, request:
     ip = get_ip(request)
     logger.info(f"upvote. ip: {ip}")
     vote_last_response(state, "upvote", reason_textbox, model_selector, request)
-    return ("",) + (disable_btn,) * 3 + (disable_textbox,)
+    return (gr.MultimodalTextbox(value=None, interactive=False),) + (disable_btn,) * 3 + (disable_textbox,)
 
 
 def downvote_last_response_chatbot(state, reason_textbox, model_selector, request: gr.Request):
     ip = get_ip(request)
     logger.info(f"downvote. ip: {ip}")
     vote_last_response(state, "downvote", reason_textbox, model_selector, request)
-    return ("",) + (disable_btn,) * 3 + (disable_textbox,)
+    return (gr.MultimodalTextbox(value=None, interactive=False),) + (disable_btn,) * 3 + (disable_textbox,)
 
 
 def flag_last_response_chatbot(state, reason_textbox, model_selector, request: gr.Request):
     ip = get_ip(request)
     logger.info(f"flag. ip: {ip}")
     vote_last_response(state, "flag", reason_textbox, model_selector, request)
-    return ("",) + (disable_btn,) * 3 + (disable_textbox,)
+    return (gr.MultimodalTextbox(value=None, interactive=False),) + (disable_btn,) * 3 + (disable_textbox,)
 
 
 def regenerate_chatbot(state, request: gr.Request):
     ip = get_ip(request)
     logger.info(f"regenerate. ip: {ip}")
     state.conv.update_last_message(None)
-    return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5 + (disable_textbox,)
+    return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
 
 def clear_history_chatbot(request: gr.Request):
     ip = get_ip(request)
     logger.info(f"clear_history. ip: {ip}")
     state = None
-    return (state, [], "", gr(value=None, interactive=True)) + (disable_btn,) * 5 + (clear_textbox,)
+    return (state, [], gr.MultimodalTextbox(value=None, interactive=False), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (clear_textbox,)
 
 
 def clear_history(request: gr.Request):
@@ -1185,7 +1185,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
     upvote_btn.click(
         upvote_last_response_chatbot,
         [state, reason_textbox, model_selector],
-        [upvote_btn, downvote_btn, flag_btn, reason_textbox],
+        [chat_input, upvote_btn, downvote_btn, flag_btn, reason_textbox],
     )
     downvote_btn.click(
         downvote_last_response_chatbot,
