@@ -265,3 +265,11 @@ register_model_info(
     "https://github.com/PKU-YuanGroup/Video-LLaVA",
     "Video-LLaVA by PKU",
 )
+
+# Register LITA
+register_model_info(
+    ["LITA-13B-v1.3"],
+    "LITA",
+    "https://github.com/NVlabs/LITA",
+    "LITA by NVIDIA",
+)

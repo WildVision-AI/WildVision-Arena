@@ -7,7 +7,6 @@ import time
 
 from arena.utils import build_logger
 from arena.constants import WORKER_API_TIMEOUT
-from openai import OpenAI
 
 import base64
 from io import BytesIO
@@ -28,6 +27,7 @@ def convert_pil_to_base64(image):
     return img_str.decode('utf-8')
     
 def generate(model_name, gen_params, image, messages, is_yivl_api=False):
+    from openai import OpenAI
     img_bs64 = convert_pil_to_base64(image)
     if is_yivl_api:
         client = OpenAI(

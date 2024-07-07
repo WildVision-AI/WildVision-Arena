@@ -87,6 +87,7 @@ class ModelWorker(BaseModelWorker):
         self.is_yivl_stream = "yi-vl" in model_path.lower() and not "plus" in model_path.lower()
         self.is_idefics_stream = "idefics2-local" in model_path.lower()
         self.is_videollava_stream = "video-llava" in model_path.lower()
+        self.is_lita_stream = "lita" in model_path.lower()
 
         if self.is_llava_stream or self.is_llavav15_stream:
             self.tokenizer, self.model, self.image_processor, self.context_len = load_llava_pretrained_model(
@@ -141,6 +142,15 @@ class ModelWorker(BaseModelWorker):
             model_name = get_model_name_from_path(model_path)
             from arena.vlm_utils.videollava.model.builder import load_pretrained_model
             self.tokenizer, self.model, self.processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit, device=device, cache_dir=cache_dir)
+        elif self.is_lita_stream:
+            from arena.videollm_utils.llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+            from arena.videollm_utils.lita.model.builder import load_pretrained_model
+            model_path = "/private/home/yujielu/downloads/weights/lita-vicuna-v1-3-13b-finetune"
+            model_base = None
+            model_name = get_model_name_from_path(model_path)
+            load_8bit = False
+            load_4bit = False
+            self.tokenizer, self.model, self.processor, self.context_len = load_pretrained_model(model_path, model_base, model_name, load_8bit, load_4bit)
         else:
             self.model, self.tokenizer = load_model(
                 model_path,
@@ -267,7 +277,7 @@ class ModelWorker(BaseModelWorker):
                     if "logprobs" in output:
                         ret["logprobs"] = output["logprobs"]
                     yield json.dumps(ret).encode() + b"\0"
-            elif self.is_videollava_stream:
+            elif self.is_videollava_stream or self.is_lita_stream:
                 for output in self.generate_stream_func(
                     self.model,
                     self.tokenizer,

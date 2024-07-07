@@ -1864,6 +1864,15 @@ register_conv_template(
     )
 )
 
+register_conv_template(
+    Conversation(
+        name="lita",
+        system_message="",
+        roles=("", ""),
+        sep_style=SeparatorStyle.RAW,
+    )
+)
+
 
 if __name__ == "__main__":
     from arena.conversation import get_conv_template

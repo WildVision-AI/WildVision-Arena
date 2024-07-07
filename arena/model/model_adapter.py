@@ -599,6 +599,7 @@ def get_generate_stream_function(model_path: str):
     is_idefics_stream = "idefics2-local" in model_path.lower()
     
     is_videollava_stream = "video-llava" in model_path.lower()
+    is_lita_stream = "lita" in model_path.lower()
     ic(model_path)
     if is_llavav15_stream:
         from arena.model.model_llava import generate_stream_llava_v15
@@ -633,6 +634,9 @@ def get_generate_stream_function(model_path: str):
     elif is_videollava_stream:
         from arena.model.model_videollava import generate_stream_videollava
         return generate_stream_videollava
+    elif is_lita_stream:
+        from arena.model.model_lita import generate_stream_lita
+        return generate_stream_lita
     else:
         return generate_stream
 
@@ -902,6 +906,15 @@ class VideoLLaVAAdapter(BaseModelAdapter):
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("video-llava")
+
+class LITAAdapter(BaseModelAdapter):
+    """The model adapter for LITA-13B-v1.3"""
+
+    def match(self, model_path: str):
+        return "lita" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("lita")
     
 # Note: the registration order matters.
 # The one registered earlier has a higher matching priority.
@@ -925,5 +938,6 @@ register_model_adapter(IdeficsAdapter)
 register_model_adapter(MiniCPMAPIAdapter)
 register_model_adapter(QwenVLAPIAdapter)
 register_model_adapter(VideoLLaVAAdapter)
+register_model_adapter(LITAAdapter)
 # After all adapters, try the default base adapter.
 register_model_adapter(BaseModelAdapter)

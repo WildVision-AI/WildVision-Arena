@@ -366,7 +366,9 @@ def chat_loop(
     is_qwenvl_stream = "qwen-vl-chat" in model_path.lower()
     is_blip_stream = "blip" in model_path.lower()
 
+    # TODO: implement videollm inference
     is_videollava_stream = "video-llava" in model_path.lower()
+    is_lita_stream = "lita" in model_path.lower()
 
     if is_llava_stream or is_llavav15_stream or is_qwenvl_stream:
         tokenizer, model, image_processor, context_len = load_model(
@@ -380,7 +382,7 @@ def chat_loop(
             revision=revision,
             debug=debug,
         )
-    elif is_videollava_stream:
+    elif is_videollava_stream or is_lita_stream:
         tokenizer, model, processor, context_len = load_model(
             model_path,
             device=device,
