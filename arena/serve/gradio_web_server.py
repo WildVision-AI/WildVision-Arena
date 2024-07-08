@@ -81,6 +81,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from transformers import TextStreamer
+import cv2
 from icecream import ic
 
 os.environ.setdefault('TEMPORAL_CHUNK', 'uniform')
@@ -428,7 +429,7 @@ def add_input_chatbot(state, model_selector, history, input, request: gr.Request
         logger.info(f"type image{type(image)}")
         conv.set_vision_input(image)
     elif os.path.splitext(input["files"][0])[1] in [".mp4"]:
-        video = load_and_transform_video(input["files"][0], get_video_transform("decord", 1), "decord")
+        video = load_and_transform_video(input["files"][0]) # return [Image, Image,..., Image]
         ic(type(video))
         logger.info(f"type video{type(video)}")
         conv.set_vision_input(video)
@@ -461,7 +462,6 @@ def model_worker_stream_iter(
     # TODO: trans state
     import base64
     vision_input = conv.get_vision_input()
-
     # TODO: add interleave image
     if isinstance(vision_input, Image.Image):
         # single image
@@ -484,6 +484,7 @@ def model_worker_stream_iter(
         input_text = gen_params["prompt"]["text"]
     elif isinstance(vision_input, torch.Tensor):
         # video tensor
+        logger.info(f"==== vision input shape ====\n{vision_input.shape}")  
         video_tensor_list = vision_input.tolist()
         
         gen_params = {
@@ -498,6 +499,32 @@ def model_worker_stream_iter(
             "echo": False,
         }
         input_text = gen_params["prompt"]["text"]
+
+    elif isinstance(vision_input, list) and all(isinstance(img, Image.Image) for img in vision_input):
+        logger.info(f"==== vision input====\n{vision_input}")  
+        
+        encoded_images = []
+        for img in vision_input:
+            im_file = BytesIO()
+            img.save(im_file, format="PNG")  
+            im_bytes = im_file.getvalue()
+            im_b64 = base64.b64encode(im_bytes).decode("utf-8") 
+            encoded_images.append(im_b64)
+
+        gen_params = {
+            "model": model_name,
+            "prompt": {"text":prompt, "image":None, "video":json.dumps(encoded_images)},
+            "temperature": temperature,
+            "repetition_penalty": repetition_penalty,
+            "top_p": top_p,
+            "max_new_tokens": max_new_tokens,
+            "stop": conv.stop_str,
+            "stop_token_ids": conv.stop_token_ids,
+            "echo": False,
+        }
+        input_text = gen_params["prompt"]["text"]
+
+
     logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output
@@ -508,6 +535,7 @@ def model_worker_stream_iter(
         stream=True,
         timeout=WORKER_API_TIMEOUT,
     )
+
     for chunk in response.iter_lines(decode_unicode=False, delimiter=b"\0"):
         if chunk:
             data = json.loads(chunk.decode())
@@ -1084,7 +1112,6 @@ def is_valid_video_filename(name):
         return False
 
 def sample_frames(video_file, num_frames) :
-    import cv2
     video = cv2.VideoCapture(video_file)
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     interval = total_frames // num_frames
@@ -1118,15 +1145,14 @@ from decord import VideoReader, cpu
 from torchvision import transforms
 from transformers import ProcessorMixin, BatchEncoding
 from transformers.image_processing_utils import BatchFeature
-
+from pytorchvideo.data.encoded_video import EncodedVideo
 from torchvision.transforms import Compose, Lambda, ToTensor
 from torchvision.transforms._transforms_video import NormalizeVideo, RandomCropVideo, RandomHorizontalFlipVideo, CenterCropVideo
-
+from pytorchvideo.transforms import ApplyTransformToKey, ShortSideScale, UniformTemporalSubsample
 OPENAI_DATASET_MEAN = (0.48145466, 0.4578275, 0.40821073)
 OPENAI_DATASET_STD = (0.26862954, 0.26130258, 0.27577711)
 
 def get_video_transform(video_decode_backend, num_frames):
-    from pytorchvideo.transforms import ApplyTransformToKey, ShortSideScale, UniformTemporalSubsample
     if video_decode_backend == 'pytorchvideo':
         transform = ApplyTransformToKey(
             key="video",
@@ -1172,14 +1198,13 @@ def get_video_transform(video_decode_backend, num_frames):
 
 def load_and_transform_video(
         video_path,
-        transform,
+        transform=None,
         video_decode_backend='opencv',
         clip_start_sec=0.0,
         clip_end_sec=None,
         num_frames=8,
 ):
     if video_decode_backend == 'pytorchvideo':
-        from pytorchvideo.data.encoded_video import EncodedVideo
         #  decord pyav
         video = EncodedVideo.from_path(video_path, decoder="decord", decode_audio=False)
         duration = video.duration
@@ -1212,10 +1237,11 @@ def load_and_transform_video(
             cv2_vr.set(1, frame_idx)
             _, frame = cv2_vr.read()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            video_data.append(torch.from_numpy(frame).permute(2, 0, 1))
+            video_data.append(Image.fromarray(frame))
         cv2_vr.release()
-        video_data = torch.stack(video_data, dim=1)
-        video_outputs = transform(video_data)
+        video_outputs = video_data
+        # video_data = torch.stack(video_data, dim=1)
+        # video_outputs = transform(video_data)
     else:
         raise NameError('video_decode_backend should specify in (pytorchvideo, decord, opencv)')
     return video_outputs
