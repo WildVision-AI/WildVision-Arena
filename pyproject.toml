@@ -23,7 +23,7 @@ model_worker = ["accelerate>=0.21", "peft", "sentencepiece", "torch", "torchvisi
 vision_bench = ["tiktoken", "fire", "datasets", 'reka-api', 'prettytable']
 webui = ["gradio"]
 train = ["einops", "flash-attn>=2.0", "wandb"]
-llm_judge = ["anthropic>=0.3", "ray", "polyglot", "pyicu", "pycld2", "morfessor", "scikit-learn"]
+llm_judge = ["anthropic>=0.3", "ray", "polyglot", "pycld2", "morfessor", "scikit-learn"]
 dev = ["black==23.3.0", "pylint==2.8.2", "icecream", "Pillow", 'openai']
 api = ["openai", "google-generativeai"]
 
@@ -32,6 +32,7 @@ api = ["openai", "google-generativeai"]
 "Bug Tracker" = "https://github.com/lm-sys/fastchat/issues"
 
 [tool.setuptools.packages.find]
+include = ["arena*", "model_config*"]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
 
 [tool.wheel]

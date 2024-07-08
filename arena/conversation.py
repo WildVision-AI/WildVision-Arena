@@ -1866,9 +1866,9 @@ register_conv_template(
 
 register_conv_template(
     Conversation(
-        name="lita",
-        system_message="",
-        roles=("", ""),
+        name="llava-next",
+        system_message="A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.",
+        roles=("USER", "ASSISTANT"),
         sep_style=SeparatorStyle.RAW,
     )
 )
