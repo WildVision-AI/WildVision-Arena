@@ -112,9 +112,9 @@ def generate_stream_lita(model, tokenizer, processor, params, device, context_le
         output_ids = model.generate(
             input_ids,
             images=image_tensor,
-            do_sample=True,
-            temperature=0.2,
-            max_new_tokens=1024,
+            do_sample=do_sample,
+            temperature=temperature,
+            max_new_tokens=max_new_tokens,
             streamer=streamer,
             use_cache=True,
             stopping_criteria=[stopping_criteria])

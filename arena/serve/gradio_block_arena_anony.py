@@ -480,7 +480,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
             model_description_md = get_model_description_md(models)
             gr.Markdown(model_description_md, elem_id="model_description_markdown")
         with gr.Row():
-            with gr.Column(scale=1.5):
+            with gr.Column(scale=1):
                 with gr.Accordion("🎲 Choose models to sample from", open=True, elem_classes="accordion-label"):
                     model_options = models
                     selected_models = gr.CheckboxGroup(model_options, info="", value=model_options, show_label=False, elem_id="select-models", interactive=True) 

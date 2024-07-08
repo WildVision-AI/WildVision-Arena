@@ -74,6 +74,7 @@ register_conv_template(
 from arena.serve.api_provider import your_api_stream_iter
 def bot_response(
     state,
+    chatbot,
     temperature,
     top_p,
     max_new_tokens,

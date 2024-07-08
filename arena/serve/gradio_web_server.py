@@ -142,13 +142,19 @@ class State:
         self.conv_id = uuid.uuid4().hex
         self.skip_next = False
         self.model_name = model_name
-        
+        self.chatbot_history = None
 
         if model_name in ["palm-2", "gemini-pro"]:
             self.palm_chat = init_palm_chat(model_name)
 
     def to_gradio_chatbot(self):
         return self.conv.to_gradio_chatbot()
+
+    def set_chatbot_history(self, chatbot_history):
+        self.chatbot_history = chatbot_history
+
+    def get_chatbot_history(self):
+        return self.chatbot_history
 
     def dict(self):
         base = self.conv.dict()
@@ -386,20 +392,27 @@ def load_image(image_file):
         
     return image
 
-def add_input_chatbot(state, model_selector, history, input, request: gr.Request):
+def add_input_chatbot(state, model_selector, chatbot, chat_input, request: gr.Request):
     ip = get_ip(request)
     logger.info(f"add_input_chatbot. ip: {ip}.")
-
-    for x in input["files"]:
-        history.append(((x,), None))
-    if input["text"] is not None:
-        history.append((input["text"], None))
         
     from icecream import ic
-    ic(input["files"])
+    ic(chat_input["files"])
     if state is None:
         state = State(model_selector)
-    text = input["text"]
+
+    history = state.get_chatbot_history()
+    if history is None:
+        history = chatbot
+    for x in chat_input["files"]:
+        history.append(((x,), None))
+    if chat_input["text"] is not None:
+        history.append((chat_input["text"], None))
+    from icecream import ic
+    ic(history)
+    state.set_chatbot_history(history)
+
+    text = chat_input["text"]
     if len(text) <= 0:
         state.skip_next = True
         return (state, state.to_gradio_chatbot(), "") + (no_change_btn,) * 5 + (no_change_textbox,)
@@ -418,23 +431,26 @@ def add_input_chatbot(state, model_selector, history, input, request: gr.Request
         ) * 5 + (no_change_textbox,)
 
     text = text[:INPUT_CHAR_LEN_LIMIT]  # Hard cut-off
+
     conv.append_message(conv.roles[0], text)
     conv.append_message(conv.roles[1], None)
-    ic(os.path.splitext(input["files"][0])[1], os.path.splitext(input["files"][0])[1] in [".mp4"])
-    if os.path.splitext(input["files"][0])[1] in [".jpg", ".png"]:
-        # TODO: support interleaved image
-        image = load_image(input["files"][0])
-        ic(type(image))
-        logger.info(f"type image{type(image)}")
-        conv.set_vision_input(image)
-    elif os.path.splitext(input["files"][0])[1] in [".mp4"]:
-        video = load_and_transform_video(input["files"][0], get_video_transform("decord", 1), "decord")
-        ic(type(video))
-        logger.info(f"type video{type(video)}")
-        conv.set_vision_input(video)
-
-    ic(state, text)
-    return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
+    # ic(os.path.splitext(chat_input["files"][0])[1], os.path.splitext(chat_input["files"][0])[1] in [".mp4"])
+    if len(chat_input["files"]):
+        # FIXME: chat_input["files"] not loaded from history
+        if os.path.splitext(chat_input["files"][0])[1] in [".jpg", ".png"]:
+            # TODO: support interleaved image
+            image = load_image(chat_input["files"][0])
+            ic(type(image))
+            logger.info(f"type image{type(image)}")
+            conv.set_vision_input(image)
+        elif os.path.splitext(chat_input["files"][0])[1] in [".mp4"]:
+            video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "decord")
+            ic(type(video))
+            logger.info(f"type video{type(video)}")
+            conv.set_vision_input(video)
+    # state.set_chatbot_history(history)
+    # return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
+    return (state, history, gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
 
 def post_process_code(code):
     sep = "\n```"
@@ -562,10 +578,12 @@ def bot_response(
     top_p = float(top_p)
     max_new_tokens = int(max_new_tokens)
 
+    chatbot_history = state.get_chatbot_history()
     if state.skip_next:
         # This generate call is skipped due to invalid inputs
         state.skip_next = False
-        yield (state, state.to_gradio_chatbot()) + (no_change_btn,) * 5 + (no_change_textbox,)
+        # yield (state, state.to_gradio_chatbot()) + (no_change_btn,) * 5 + (no_change_textbox,)
+        yield (state, chatbot_history) + (no_change_btn,) * 5 + (no_change_textbox,)
         return
 
     conv, model_name = state.conv, state.model_name
@@ -679,9 +697,11 @@ def bot_response(
         # No available worker
         if worker_addr == "":
             conv.update_last_message(SERVER_ERROR_MSG)
+            chatbot_history[-1] = (chatbot_history[-1][0], SERVER_ERROR_MSG)
+            state.set_chatbot_history(chatbot_history)
             yield (
                 state,
-                state.to_gradio_chatbot(),
+                chatbot_history, #state.to_gradio_chatbot(),
                 disable_btn,
                 disable_btn,
                 disable_btn,
@@ -689,6 +709,7 @@ def bot_response(
                 enable_btn,
                 disable_textbox,
             )
+
             return
 
         # Construct prompt.
@@ -713,14 +734,27 @@ def bot_response(
         )
 
     conv.update_last_message("▌")
-    yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
+    # chatbot_history.append(("▌", None))
+    chatbot_history[-1] = (chatbot_history[-1][0], "▌")
+    state.set_chatbot_history(chatbot_history)
+    yield (state, chatbot_history) + (disable_btn,) * 5 + (disable_textbox,)
+    # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
 
     try:
         if apply_rate_limit and model_name in ["gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo"] and not request_allowed(ip):
             logger.info(f"reach rate_limit_per_day. ip: {ip}")
             output =f"{RATE_LIMIT_MSG}\n\n (error_code: {ErrorCode.RATE_LIMIT})"
             conv.update_last_message(output)
-            yield (state, state.to_gradio_chatbot()) + (
+            chatbot_history[-1] = (chatbot_history[-1][0], output)
+            state.set_chatbot_history(chatbot_history)
+            # yield (state, state.to_gradio_chatbot()) + (
+            #     disable_btn,
+            #     disable_btn,
+            #     disable_btn,
+            #     enable_btn,
+            #     enable_btn,
+            # ) + (disable_textbox,)
+            yield (state, chatbot_history) + (
                 disable_btn,
                 disable_btn,
                 disable_btn,
@@ -734,11 +768,23 @@ def bot_response(
                 if data.get("error_code", 0) == 0:
                     output = data["text"].strip()
                     conv.update_last_message(output + "▌")
-                    yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
+                    chatbot_history[-1] = (chatbot_history[-1][0], output + "▌")
+                    state.set_chatbot_history(chatbot_history)
+                    # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
+                    yield (state, chatbot_history) + (disable_btn,) * 5 + (disable_textbox,)
                 else:
                     output = data["text"] + f"\n\n(error_code: {data['error_code']})"
                     conv.update_last_message(output)
-                    yield (state, state.to_gradio_chatbot()) + (
+                    chatbot_history[-1] = (chatbot_history[-1][0], output)
+                    state.set_chatbot_history(chatbot_history)
+                    # yield (state, state.to_gradio_chatbot()) + (
+                    #     disable_btn,
+                    #     disable_btn,
+                    #     disable_btn,
+                    #     enable_btn,
+                    #     enable_btn,
+                    # ) + (disable_textbox,)
+                    yield (state, chatbot_history) + (
                         disable_btn,
                         disable_btn,
                         disable_btn,
@@ -751,7 +797,10 @@ def bot_response(
         if "vicuna" in model_name:
             output = post_process_code(output)
         conv.update_last_message(output)
-        yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5 + (enable_textbox,)
+        chatbot_history[-1] = (chatbot_history[-1][0], output)
+        state.set_chatbot_history(chatbot_history)
+        # yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5 + (enable_textbox,)
+        yield (state, chatbot_history) + (enable_btn,) * 5 + (enable_textbox,)
     except requests.exceptions.RequestException as e:
         error_info = traceback.format_exc()
         logger.info(f"An GRADIO_REQUEST_ERROR occurred: {e}. Traceback: {error_info}")
@@ -760,7 +809,16 @@ def bot_response(
             f"{SERVER_ERROR_MSG}\n\n"
             f"(error_code: {ErrorCode.GRADIO_REQUEST_ERROR}, {e})"
         )
-        yield (state, state.to_gradio_chatbot()) + (
+        chatbot_history[-1] = (chatbot_history[-1][0], f"{SERVER_ERROR_MSG}\n\n"f"(error_code: {ErrorCode.GRADIO_REQUEST_ERROR}, {e})")
+        state.set_chatbot_history(chatbot_history)
+        # yield (state, state.to_gradio_chatbot()) + (
+        #     disable_btn,
+        #     disable_btn,
+        #     disable_btn,
+        #     enable_btn,
+        #     enable_btn,
+        # ) + (disable_textbox,)
+        yield (state, chatbot_history) + (
             disable_btn,
             disable_btn,
             disable_btn,
@@ -776,7 +834,16 @@ def bot_response(
             f"{SERVER_ERROR_MSG}\n\n"
             f"(error_code: {ErrorCode.GRADIO_STREAM_UNKNOWN_ERROR}, {e})"
         )
-        yield (state, state.to_gradio_chatbot()) + (
+        chatbot_history[-1] = (chatbot_history[-1][0], f"{SERVER_ERROR_MSG}\n\n"f"(error_code: {ErrorCode.GRADIO_STREAM_UNKNOWN_ERROR}, {e})")
+        state.set_chatbot_history(chatbot_history)
+        # yield (state, state.to_gradio_chatbot()) + (
+        #     disable_btn,
+        #     disable_btn,
+        #     disable_btn,
+        #     enable_btn,
+        #     enable_btn,
+        # ) + (disable_textbox,)
+        yield (state, chatbot_history) + (
             disable_btn,
             disable_btn,
             disable_btn,
@@ -1203,6 +1270,7 @@ def load_and_transform_video(
         video_outputs = transform(video_data)
 
     elif video_decode_backend == 'opencv':
+        import cv2
         cv2_vr = cv2.VideoCapture(video_path)
         duration = int(cv2_vr.get(cv2.CAP_PROP_FRAME_COUNT))
         frame_id_list = np.linspace(0, duration-1, num_frames, dtype=int)
@@ -1277,7 +1345,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
             elem_id="chatbot",
             bubble_full_width=False
         )
-        chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image","video"], placeholder="Enter message or upload file...", show_label=False)
+        chat_input = gr.MultimodalTextbox(interactive=True, scale=1, file_types=["image","video"], placeholder="Enter message or upload file...", show_label=False)
         
     with gr.Row():
         reason_textbox = gr.Textbox(label="Reason", placeholder="Please input your reason for voting here before clicking the vote button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=False)
@@ -1318,7 +1386,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
         )
     with gr.Row():
         gr.Examples(examples=[
-            [{"files": ["examples/dancing.mp4"], "text": "Describe the video."}]
+            [{"files": ["examples/dancing.mp4"], "text": "Describe the video in one sentence."}]
         ], inputs=[chat_input])
 
         gr.Examples(examples=[
@@ -1361,12 +1429,11 @@ def build_single_model_chatbot(models, add_promotion_links=False):
         bot_response,
         [state, temperature, top_p, max_output_tokens],
         [state, chatbot] + btn_list + [reason_textbox],
+    ).then(
+        lambda: gr.MultimodalTextbox(interactive=True, value=None),
+        None,
+        [chat_input]
     )
-    # .then(
-    #     lambda: gr.MultimodalTextbox(interactive=True),
-    #     None,
-    #     [chat_input]
-    # )
     gr.Markdown(INFO_MD, elem_id="info_markdown")
 
     return [state, model_selector]
