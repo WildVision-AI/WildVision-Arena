@@ -32,7 +32,7 @@ api = ["openai", "google-generativeai"]
 "Bug Tracker" = "https://github.com/lm-sys/fastchat/issues"
 
 [tool.setuptools.packages.find]
-include = ["arena", "model_config"]
+include = ["arena*", "model_config*"]
 exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
 
 [tool.wheel]
