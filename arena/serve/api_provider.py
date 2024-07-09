@@ -457,6 +457,51 @@ def yivl_api_stream_iter(model_name, messages, temperature, top_p, max_new_token
             "error_code": 0,
         }
         yield data
+        
+def llava_api_stream_iter(model_name, messages, temperature, top_p, max_new_tokens, image):
+    gen_params = {
+        "prompt": messages,
+        "temperature": temperature,
+        "top_p": top_p,
+        "max_new_tokens": max_new_tokens,
+    }
+    print(gen_params)
+    img_bs64 = convert_pil_to_base64(image)
+    client = OpenAI(
+        api_key=os.getenv("LLAVA_API_KEY"),
+        base_url=os.getenv("LLAVA_API_BASE")
+    )
+    input_messages = messages
+    if image is not None:
+        text_message = input_messages[0]["content"]
+        input_messages[0]["content"] = [
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{img_bs64}"
+                }
+            },
+            {"type": "text", "text": text_message},
+        ]
+    ic(model_name)
+    response = client.chat.completions.create(
+        model="default",
+        messages=input_messages,
+        max_tokens=min(int(gen_params.get("max_new_tokens", 1024)), 1024),
+        temperature=float(gen_params.get("temperature", 0.2)),
+        top_p = float(gen_params.get("top_p", 0.7)),
+        stream=True
+    )
+                
+    text = ""
+    for chunk in response:
+        text += chunk.choices[0].delta.content or ""
+        # print(chunk.choices[0].delta.content or "", end="", flush=True)
+        data = {
+            "text": text,
+            "error_code": 0,
+        }
+        yield data
 
 def reka_api_stream_iter(model_name, conv, temperature, top_p, max_new_tokens, image):
     import reka

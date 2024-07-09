@@ -1844,6 +1844,16 @@ register_conv_template(
     )
 )
 
+# LLAVA API template, just a place holder, I think we will never use it?
+register_conv_template(
+    Conversation(
+        name="llava-api",
+        system_message="",
+        roles=("", ""),
+        sep_style=SeparatorStyle.RAW,
+    )
+)
+
 # Idefics template
 register_conv_template(
     Conversation(

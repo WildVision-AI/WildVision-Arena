@@ -44,6 +44,7 @@ from arena.serve.api_provider import (
     gemini_vision_api_stream_iter,
     idefics2_api_stream_iter,
     yivl_api_stream_iter,
+    llava_api_stream_iter,
     minicpm_api_stream_iter,
     qwenvl_api_stream_iter,
     reka_api_stream_iter,
@@ -573,6 +574,13 @@ def bot_response(
         # TODO: double check yi-vl-api template and history
         prompt = conv.to_openai_api_messages()
         stream_iter = yivl_api_stream_iter(
+            model_name, prompt, temperature, top_p, max_new_tokens, image
+        )
+    elif model_name in [
+        "llava-next-72b", "llama3-llava-next-8b"
+    ]:
+        prompt = conv.to_openai_api_messages()
+        stream_iter = llava_api_stream_iter(
             model_name, prompt, temperature, top_p, max_new_tokens, image
         )
     elif model_name in [
