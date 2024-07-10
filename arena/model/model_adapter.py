@@ -58,6 +58,9 @@ OPENAI_MODEL_LIST = (
     "gpt-4o",
 )
 
+LLAVA_API_MODEL_LIST = (
+    "llava-next-72b",
+)
 
 class BaseModelAdapter:
     """The base and the default model adapter."""
@@ -863,6 +866,18 @@ class YiVLPLUSAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("yi-vl")
 
+class LlavaAPIAdapter(BaseModelAdapter):
+    """The model adapter for Llava api model."""
+
+    def match(self, model_path: str):
+        return model_path.lower() in LLAVA_API_MODEL_LIST
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        return None, None
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("llava-api")
+    
 class RekaAdapter(BaseModelAdapter):
     """The model adapter for Reka"""
 
@@ -921,6 +936,7 @@ class LLaVANeXTAdapter(BaseModelAdapter):
 # The one registered earlier has a higher matching priority.
 register_model_adapter(ClaudeAdapter)
 register_model_adapter(ChatGPTAdapter)
+register_model_adapter(LlavaAPIAdapter)
 register_model_adapter(GeminiAdapter)
 register_model_adapter(LLaVAv15Adapter)
 register_model_adapter(LLaVAv16Adapter)
