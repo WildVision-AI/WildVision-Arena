@@ -577,7 +577,7 @@ def bot_response(
             model_name, prompt, temperature, top_p, max_new_tokens, image
         )
     elif model_name in [
-        "llava-next-72b", "llama3-llava-next-8b"
+        "llava-next-72b"
     ]:
         prompt = conv.to_openai_api_messages()
         stream_iter = llava_api_stream_iter(

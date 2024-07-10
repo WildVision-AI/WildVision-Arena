@@ -61,7 +61,6 @@ OPENAI_MODEL_LIST = (
 
 LLAVA_API_MODEL_LIST = (
     "llava-next-72b",
-    "llama3-llava-next-8b"
 )
 
 class BaseModelAdapter:

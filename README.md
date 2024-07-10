@@ -126,7 +126,8 @@ export WEB_IMG_FOLDER="/home/yuchenl/http_img/"
 export YIVL_API_KEY=YOUR_API_KEY
 export WEB_IMG_URL_ROOT="http://34.19.37.54:5006"
 export YIVL_API_BASE="https://api.lingyiwanwu.com/v1"
-
+export LLAVA_API_KEY="EMPTY"
+export LLAVA_API_BASE="https://llava-next-endpoint.lmms-lab.com/v1"
 pip install reka-api
 export REKA_API_KEY=YOUR_API_KEY
 
@@ -141,7 +142,7 @@ python3 -m arena.serve.model_worker --model-path claude-3-sonnet-20240229 --cont
 python3 -m arena.serve.model_worker --model-path claude-3-haiku-20240307 --controller http://127.0.0.1:21002 --port 31020 --worker http://127.0.0.1:31020 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path yi-vl-plus --controller http://127.0.0.1:21002 --port 31021 --worker http://127.0.0.1:31021 --host=127.0.0.1 &
 # python3 -m arena.serve.model_worker --model-path reka --controller http://127.0.0.1:21002 --port 31022 --worker http://127.0.0.1:31022 --host=127.0.0.1
-python3 -m arena.serve.model_worker --model-path Reka-Flash --controller http://127.0.0.1:21002 --port 31022 --worker http://127.0.0.1:31022 --host=127.0.0.1
+python3 -m arena.serve.model_worker --model-path Reka-Flash --controller http://127.0.0.1:21002 --port 31022 --worker http://127.0.0.1:31022 --host=127.0.0.1 
 
 # CUDA_VISIBLE_DEVICES=2 python3 -m arena.serve.model_worker --model-path liuhaotian/llava-v1.5-13b --controller http://127.0.0.1:21002 --port 31002 --worker http://127.0.0.1:31002 --host=127.0.0.1  --num-gpus 1 &
 
@@ -160,6 +161,9 @@ python3 -m arena.serve.model_worker --model-path qwen-vl-plus --controller http:
 
 
 python3 -m arena.serve.model_worker --model-path gpt-4-turbo --controller http://127.0.0.1:21002 --port 31030 --worker http://127.0.0.1:31030 --host=127.0.0.1 &
+
+python3 -m arena.serve.model_worker --model-path llava-next-72b --controller http://127.0.0.1:21002 --port 31031 --worker http://127.0.0.1:31031 --host=127.0.0.1
+
 
 ```
 
