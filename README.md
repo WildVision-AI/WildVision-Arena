@@ -328,6 +328,12 @@ Take model [LLaVA-NeXT-Video-7B](https://huggingface.co/lmms-lab/LLaVA-NeXT-Vide
 CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path lmms-lab/LLaVA-NeXT-Video-7B --controller http://127.0.0.1:21002 --port 32003 --worker http://127.0.0.1:32003 --host=127.0.0.1  --num-gpus 1
 ```
 
+**[VideoLLaMA2](https://github.com/DAMO-NLP-SG/VideoLLaMA2)**
+Take model [VideoLLaMA2-7B](https://huggingface.co/DAMO-NLP-SG/VideoLLaMA2-7B) as an example.
+```
+CUDA_VISIBLE_DEVICES=0 python3 -m arena.serve.model_worker --model-path DAMO-NLP-SG/VideoLLaMA2-7B --controller http://127.0.0.1:21002 --port 32003 --worker http://127.0.0.1:32003 --host=127.0.0.1  --num-gpus 1
+```
+
 ### Start the Web Server
 
 ```bash
