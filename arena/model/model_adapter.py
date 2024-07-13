@@ -603,6 +603,7 @@ def get_generate_stream_function(model_path: str):
     
     is_videollava_stream = "video-llava" in model_path.lower()
     is_llavanext_stream = "llava-next" in model_path.lower()
+    is_videollama2_stream = "videollama2" in model_path.lower()
 
     ic(model_path)
     if is_llavav15_stream:
@@ -641,6 +642,9 @@ def get_generate_stream_function(model_path: str):
     elif is_llavanext_stream:
         from arena.model.model_llavanext import generate_stream_llavanext
         return generate_stream_llavanext
+    elif is_videollama2_stream:
+        from arena.model.model_videollama2 import generate_stream_videollama2
+        return generate_stream_videollama2
     else:
         return generate_stream
 
@@ -931,6 +935,15 @@ class LLaVANeXTAdapter(BaseModelAdapter):
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("llava-next")
+
+class VideoLLaMA2Adapter(BaseModelAdapter):
+    """The model adapter for DAMO-NLP-SG/VideoLLaMA2-7B"""
+
+    def match(self, model_path: str):
+        return "videollama2" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("videollama2")
     
 # Note: the registration order matters.
 # The one registered earlier has a higher matching priority.
@@ -956,5 +969,6 @@ register_model_adapter(MiniCPMAPIAdapter)
 register_model_adapter(QwenVLAPIAdapter)
 register_model_adapter(VideoLLaVAAdapter)
 register_model_adapter(LLaVANeXTAdapter)
+register_model_adapter(VideoLLaMA2Adapter)
 # After all adapters, try the default base adapter.
 register_model_adapter(BaseModelAdapter)

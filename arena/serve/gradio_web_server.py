@@ -446,7 +446,8 @@ def add_input_chatbot(state, model_selector, chatbot, chat_input, request: gr.Re
             logger.info(f"type image{type(image)}")
             conv.set_vision_input(image)
         elif os.path.splitext(chat_input["files"][0])[1] in [".mp4"]:
-            video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "decord")
+            # video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "decord")
+            video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "opencv")
             ic(type(video))
             logger.info(f"type video{type(video)}")
             conv.set_vision_input(video)

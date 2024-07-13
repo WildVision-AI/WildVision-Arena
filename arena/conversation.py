@@ -1877,11 +1877,23 @@ register_conv_template(
 register_conv_template(
     Conversation(
         name="llava-next",
-        system_message="A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.",
-        roles=("USER", "ASSISTANT"),
+        system_message="",
+        roles=("", ""),
         sep_style=SeparatorStyle.RAW,
     )
 )
+
+register_conv_template(
+    Conversation(
+        name="videollama2",
+        system_message="",
+        roles=("[INST]", "[/INST]"),
+        sep_style=SeparatorStyle.LLAMA2,
+        sep=" ",
+        sep2=" </s><s>",
+    )
+)
+
 
 
 if __name__ == "__main__":
@@ -1920,6 +1932,16 @@ if __name__ == "__main__":
 
     print("-- Claude template --")
     conv = get_conv_template("claude")
+    conv.append_message(conv.roles[0], "Hello!")
+    conv.append_message(conv.roles[1], "Hi!")
+    conv.append_message(conv.roles[0], "How are you?")
+    conv.append_message(conv.roles[1], None)
+    print(conv.get_prompt())
+
+    print("\n")
+
+    print("-- VideoLLaMA2 template --")
+    conv = get_conv_template("videollama2")
     conv.append_message(conv.roles[0], "Hello!")
     conv.append_message(conv.roles[1], "Hi!")
     conv.append_message(conv.roles[0], "How are you?")

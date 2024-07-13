@@ -88,6 +88,7 @@ class ModelWorker(BaseModelWorker):
         self.is_idefics_stream = "idefics2-local" in model_path.lower()
         self.is_videollava_stream = "video-llava" in model_path.lower()
         self.is_llavanext_stream = "llava-next" in model_path.lower()
+        self.is_videollama2_stream = "videollama2" in model_path.lower()
 
         if self.is_llava_stream or self.is_llavav15_stream:
             self.tokenizer, self.model, self.image_processor, self.context_len = load_llava_pretrained_model(
@@ -149,6 +150,14 @@ class ModelWorker(BaseModelWorker):
             from arena.vlm_utils.llavavid.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
             model_name = get_model_name_from_path(model_path)
             from arena.vlm_utils.llavavid.model.builder import load_pretrained_model
+            self.tokenizer, self.model, self.processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit)
+        elif self.is_videollama2_stream:
+            cache_dir = 'cache_dir'
+            device = 'cuda'
+            load_4bit, load_8bit = True, False
+            from arena.vlm_utils.videollama2.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+            model_name = get_model_name_from_path(model_path)
+            from arena.vlm_utils.videollama2.model.builder import load_pretrained_model
             self.tokenizer, self.model, self.processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit)
         else:
             self.model, self.tokenizer = load_model(
@@ -321,7 +330,31 @@ class ModelWorker(BaseModelWorker):
                         ret["finish_reason"] = output["finish_reason"]
                     if "logprobs" in output:
                         ret["logprobs"] = output["logprobs"]
-                    yield json.dumps(ret).encode() + b"\0"  
+                    yield json.dumps(ret).encode() + b"\0" 
+            elif self.is_videollama2_stream:
+                for output in self.generate_stream_func(
+                    self.model,
+                    self.tokenizer,
+                    self.processor,
+                    params,
+                    self.device,
+                    self.context_len,
+                    self.stream_interval,
+                ):
+                    # from icecream import ic
+                    # ic(output, type(output))
+                    ret = {
+                        "text": output["text"],
+                        "error_code": 0,
+                    }
+                    if "usage" in output:
+                        ret["usage"] = output["usage"]
+                    if "finish_reason" in output:
+                        ret["finish_reason"] = output["finish_reason"]
+                    if "logprobs" in output:
+                        ret["logprobs"] = output["logprobs"]
+                    yield json.dumps(ret).encode() + b"\0" 
+
             else:
                 for output in self.generate_stream_func(
                     self.model,
