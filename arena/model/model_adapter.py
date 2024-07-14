@@ -735,7 +735,7 @@ class GeminiAdapter(BaseModelAdapter):
     """The model adapter for Gemini"""
 
     def match(self, model_path: str):
-        return model_path in ["gemini-pro", "gemini-pro-vision", "gemini-1.5-flash-latest"]
+        return model_path in ["gemini-pro", "gemini-pro-vision", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest"]
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         return None, None

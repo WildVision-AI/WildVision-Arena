@@ -49,6 +49,13 @@ register_model_info(
 )
 
 register_model_info(
+    ["gemini-1.5-pro-latest"],
+    "Gemini 1.5",
+    "https://blog.google/technology/ai/google-gemini-next-generation-model-february-2024/",
+    "Gemini 1.5 by Google",
+)
+
+register_model_info(
     ["llava-v1.5-13b"],
     "LLaVA",
     "https://huggingface.co/liuhaotian/llava-v1.5-13b",
@@ -167,6 +174,13 @@ register_model_info(
     "claude-3-sonnet-20240229",
     "https://www.anthropic.com/claude",
     "Claude-3 Sonnet (20240229)",
+)
+
+register_model_info(
+    ["claude-3-5-sonnet-20240620"],
+    "claude-3-5-sonnet-20240620",
+    "https://www.anthropic.com/claude",
+    "Claude-3.5 Sonnet (20240620)",
 )
 
 register_model_info(

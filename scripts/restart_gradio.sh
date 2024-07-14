@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PKL_FILE="/home/yuchenl/Arena-Elo/results/20240608/elo_results.pkl"
-CSV_FILE="/home/yuchenl/Arena-Elo/results/20240608/leaderboard.csv"
+PKL_FILE="/home/yuchenl/Arena-Elo/results/20240702/elo_results.pkl"
+CSV_FILE="/home/yuchenl/Arena-Elo/results/20240702/leaderboard.csv"
 
 FIRST_TIME=true
 # Infinite loop to restart the command every 10 minutes

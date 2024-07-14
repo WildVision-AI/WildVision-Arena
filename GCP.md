@@ -78,6 +78,8 @@ python3 -m arena.serve.model_worker --model-path Reka-Core --controller http://1
 python3 -m arena.serve.model_worker --model-path qwen-vl-max --controller http://127.0.0.1:8888 --port 31028 --worker http://127.0.0.1:31028 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path qwen-vl-plus --controller http://127.0.0.1:8888 --port 31029 --worker http://127.0.0.1:31029 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gpt-4-turbo --controller http://127.0.0.1:8888 --port 31030 --worker http://127.0.0.1:31030 --host=127.0.0.1 &
+python3 -m arena.serve.model_worker --model-path claude-3-5-sonnet-20240620 --controller http://127.0.0.1:8888 --port 31031 --worker http://127.0.0.1:31031 --host=127.0.0.1 &
+python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 31032 --worker http://127.0.0.1:31032 --host=127.0.0.1 &
 ```
 
 ## URL monitor

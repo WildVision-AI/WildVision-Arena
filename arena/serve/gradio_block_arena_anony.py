@@ -97,15 +97,15 @@ def vote_last_response(states, vote_type, reason_textbox, model_selectors, reque
     if len(model_selectors)>=1 and model_selectors[0] is not None and ":" not in model_selectors[0]:
         for i in range(15):
             names = (
-                "### Model A: " + states[0].model_name,
-                "### Model B: " + states[1].model_name,
+                "## Model A: " + states[0].model_name,
+                "## Model B: " + states[1].model_name,
             )
             yield names + ("",) + (disable_btn,) * 4 + (disable_textbox,)
             time.sleep(0.2)
     else:
         names = (
-            "### Model A: " + states[0].model_name,
-            "### Model B: " + states[1].model_name,
+            "## Model A: " + states[0].model_name,
+            "## Model B: " + states[1].model_name,
         )
         yield names + ("",) + (disable_btn,) * 4 + (disable_textbox,)
 
@@ -428,16 +428,22 @@ def get_random_examples_touchstone(dataset, num_examples=5):
         examples.append(formatted_example)
     return examples
     
-def update_sample_models(selected_models):
+def update_sample_models(selected_models, K=2):
     global models, ALL_MODELS
     if len(selected_models) == 0:
         models = ALL_MODELS[:]
-    elif len(selected_models) == 1:
-        models = [selected_models[0], random.choice(ALL_MODELS)]
+    # elif len(selected_models) == 1:
+    #     models = [selected_models[0], random.choice(ALL_MODELS)]
+    elif len(selected_models) < K:
+        # sample 5 models at least including the selected models
+        models = selected_models[:]
+        while len(models) < K:
+            random_model = random.choice(ALL_MODELS)
+            if random_model not in models:
+                models.append(random_model)
     else:
         models = selected_models[:]
     return None 
-    # return model_A, model_B names
 
 def build_side_by_side_ui_anony(models):
     notice_markdown = f"""
@@ -481,7 +487,8 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
             gr.Markdown(model_description_md, elem_id="model_description_markdown")
         with gr.Row():
             with gr.Column(scale=1):
-                with gr.Accordion("🎲 Choose models to sample from", open=True, elem_classes="accordion-label"):
+                # with gr.Accordion("🎲 Choose models to sample from", open=True, elem_classes="accordion-label"):
+                with gr.Accordion("🎲 Choose **N>=3 models** to sample from. If you choose fewer than 3, we will randomly select ones for you. ⬇️ ", open=True, elem_classes="accordion-label"):
                     model_options = models
                     selected_models = gr.CheckboxGroup(model_options, info="", value=model_options, show_label=False, elem_id="select-models", interactive=True) 
                     selected_models.change(update_sample_models, selected_models, None)

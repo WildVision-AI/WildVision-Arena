@@ -123,7 +123,7 @@ def load_demo(url_params, request: gr.Request):
     )
 
 
-def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct=False):
+def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs=False, show_sbs_direct=False):
     text_size = gr.themes.sizes.text_md
     with gr.Blocks(
         title="Chat with Open Multimodal Large Language Models",
@@ -135,21 +135,21 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
         with gr.Tabs() as tabs:
             with gr.Tab("⚔️ Arena ", elem_id="arena-tab", id=0):
                 side_by_side_anony_list = build_side_by_side_ui_anony(models)
- 
-            if show_sbs_direct:               
+            
+            side_by_side_named_list = []
+            single_model_list = []
+
+            if show_sbs:                            
                 with gr.Tab("⚔️ Arena (side-by-side)", elem_id="arena-tab", id=1):
                     side_by_side_named_list = build_side_by_side_ui_named(models)
 
                 # with gr.Tab("⚔️ Arena (bench)", id=2):
                 #     side_by_side_anony_list = build_side_by_side_ui_anony_bench(models)
-
+            if show_sbs_direct:
                 with gr.Tab("💬 Direct Chat", elem_id="arena-tab", id=2):
                     single_model_list = build_single_model_ui(
                         models, add_promotion_links=True
-                    )
-            else:
-                single_model_list = []
-                side_by_side_named_list = []
+                    ) 
 
 
             if elo_results_file:

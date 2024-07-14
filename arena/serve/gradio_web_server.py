@@ -629,7 +629,7 @@ def bot_response(
             model_name, prompt, temperature, top_p, max_new_tokens, image
         )
     elif model_name in [
-        "gemini-pro-vision", "gemini-1.5-flash-latest",
+        "gemini-pro-vision", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest",
     ]:
         stream_iter = gemini_vision_api_stream_iter(
             model_name, conv.messages[-2][1], temperature, top_p, max_new_tokens, image
