@@ -5,6 +5,7 @@
 # conda activate wildvision-arena
 # pip install -r requirements.txt
 conda env create --name wildvision-arena --file=wildvision-arena.yml
+conda activate wildvision-arena
 pip install torchvision==0.16.2
 # pip install -q -U google-generativeai
 # pip install transformers-stream-generator
