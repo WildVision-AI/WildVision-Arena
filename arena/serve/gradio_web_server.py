@@ -82,7 +82,6 @@ import requests
 from PIL import Image
 from io import BytesIO
 from transformers import TextStreamer
-import cv2
 from icecream import ic
 
 os.environ.setdefault('TEMPORAL_CHUNK', 'uniform')
@@ -1187,7 +1186,8 @@ def is_valid_video_filename(name):
     else:
         return False
 
-def sample_frames(video_file, num_frames) :
+def sample_frames(video_file, num_frames):
+    import cv2
     video = cv2.VideoCapture(video_file)
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     interval = total_frames // num_frames
@@ -1216,19 +1216,18 @@ def load_image(image_file):
         
     return image
 
-import decord
-from decord import VideoReader, cpu
-from torchvision import transforms
-from transformers import ProcessorMixin, BatchEncoding
-from transformers.image_processing_utils import BatchFeature
-from pytorchvideo.data.encoded_video import EncodedVideo
-from torchvision.transforms import Compose, Lambda, ToTensor
-from torchvision.transforms._transforms_video import NormalizeVideo, RandomCropVideo, RandomHorizontalFlipVideo, CenterCropVideo
-from pytorchvideo.transforms import ApplyTransformToKey, ShortSideScale, UniformTemporalSubsample
-OPENAI_DATASET_MEAN = (0.48145466, 0.4578275, 0.40821073)
-OPENAI_DATASET_STD = (0.26862954, 0.26130258, 0.27577711)
-
 def get_video_transform(video_decode_backend, num_frames):
+    import decord
+    from decord import VideoReader, cpu
+    from torchvision import transforms
+    from transformers import ProcessorMixin, BatchEncoding
+    from transformers.image_processing_utils import BatchFeature
+    from pytorchvideo.data.encoded_video import EncodedVideo
+    from torchvision.transforms import Compose, Lambda, ToTensor
+    from torchvision.transforms._transforms_video import NormalizeVideo, RandomCropVideo, RandomHorizontalFlipVideo, CenterCropVideo
+    from pytorchvideo.transforms import ApplyTransformToKey, ShortSideScale, UniformTemporalSubsample
+    OPENAI_DATASET_MEAN = (0.48145466, 0.4578275, 0.40821073)
+    OPENAI_DATASET_STD = (0.26862954, 0.26130258, 0.27577711)
     if video_decode_backend == 'pytorchvideo':
         transform = ApplyTransformToKey(
             key="video",
