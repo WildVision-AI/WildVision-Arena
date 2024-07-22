@@ -234,8 +234,9 @@ def load_demo_single(models, url_params):
         choices=models, value=selected_model, visible=True
     )
 
+    model_description_md_updates = gr.Markdown(get_model_description_md(models))
     state = None
-    return state, dropdown_update
+    return state, dropdown_update, model_description_md_updates
 
 
 def load_demo(url_params, request: gr.Request):
@@ -329,7 +330,7 @@ def clear_history_chatbot(request: gr.Request):
     ip = get_ip(request)
     logger.info(f"clear_history. ip: {ip}")
     state = None
-    return (state, [], gr.MultimodalTextbox(value=None, interactive=False), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (clear_textbox,)
+    return (state, [], gr.MultimodalTextbox(value=None, interactive=True), gr.MultimodalTextbox(value=None, interactive=True)) + (disable_btn,) * 5 + (clear_textbox,)
 
 
 def clear_history(request: gr.Request):
@@ -1401,7 +1402,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
                 elem_id="model_description_accordion",
             ):
                 model_description_md = get_model_description_md(models)
-                gr.Markdown(model_description_md, elem_id="model_description_markdown")
+                model_description = gr.Markdown(model_description_md, elem_id="model_description_markdown")
 
 
     with gr.Blocks() as demo:
@@ -1410,7 +1411,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
             elem_id="chatbot",
             bubble_full_width=False
         )
-        chat_input = gr.MultimodalTextbox(interactive=True, scale=1, file_types=["image","video"], placeholder="Enter message or upload file...", show_label=False)
+        chat_input = gr.MultimodalTextbox(interactive=True, scale=0.2, max_lines=50, min_width=40, file_types=["image","video"], placeholder="Enter message or upload file...", show_label=False)
         
     with gr.Row():
         reason_textbox = gr.Textbox(label="Reason", placeholder="Please input your reason for voting here before clicking the vote button.", type="text", elem_classes="", max_lines=5, lines=2, show_copy_button=False, visible=False, scale=2, interactive=False)
@@ -1501,7 +1502,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
     )
     gr.Markdown(INFO_MD, elem_id="info_markdown")
 
-    return [state, model_selector]
+    return [state, model_selector, model_description]
 
 def build_demo(models):
     if args.show_terms_of_use:

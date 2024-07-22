@@ -71,8 +71,10 @@ def load_demo_side_by_side_named(models, url_params):
         gr.Dropdown(choices=models, value=model_left, visible=True),
         gr.Dropdown(choices=models, value=model_right, visible=True),
     )
+    
+    model_description_md_updates = (gr.Markdown(get_model_description_md(models)),)
 
-    return states + selector_updates
+    return states + selector_updates + model_description_md_updates
 
 
 def vote_last_response(states, vote_type, reason_textbox, model_selectors, imagebox, request: gr.Request):
@@ -365,7 +367,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         with gr.Row():
             with gr.Accordion("🔍 Expand to see model descriptions", open=False):
                 model_description_md = get_model_description_md(models)
-                gr.Markdown(model_description_md, elem_id="model_description_markdown")
+                model_description = gr.Markdown(model_description_md, elem_id="model_description_markdown")
 
         with gr.Row():
             with gr.Column(scale=1):
@@ -554,4 +556,4 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     #     flash_buttons, [], btn_list
     # )
 
-    return states + model_selectors
+    return states + model_selectors + [model_description]

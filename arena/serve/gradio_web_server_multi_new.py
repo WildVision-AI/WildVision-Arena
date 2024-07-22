@@ -217,7 +217,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model-list-mode",
         type=str,
-        default="once",
+        default="reload",
         choices=["once", "reload"],
         help="Whether to load the model list once or reload the model list every time.",
     )
