@@ -48,6 +48,12 @@ from arena.utils import (
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
+from rich.console import Console
+from rich.traceback import install
+
+install()
+
+console = Console()
 
 def load_demo(url_params, request: gr.Request):
     global models

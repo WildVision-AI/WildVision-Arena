@@ -607,12 +607,17 @@ def bot_response(
     top_p = float(top_p)
     max_new_tokens = int(max_new_tokens)
 
+    USE_MM_CHATBOT = False
     chatbot_history = state.get_chatbot_history()
+    if chatbot_history is not None:
+        USE_MM_CHATBOT = True
     if state.skip_next:
         # This generate call is skipped due to invalid inputs
         state.skip_next = False
-        # yield (state, state.to_gradio_chatbot()) + (no_change_btn,) * 5 + (no_change_textbox,)
-        yield (state, chatbot_history) + (no_change_btn,) * 5 + (no_change_textbox,)
+        if USE_MM_CHATBOT:
+            yield (state, chatbot_history) + (no_change_btn,) * 5 + (no_change_textbox,)
+        else:
+            yield (state, state.to_gradio_chatbot()) + (no_change_btn,) * 5 + (no_change_textbox,)
         return
 
     conv, model_name = state.conv, state.model_name
@@ -733,18 +738,30 @@ def bot_response(
         # No available worker
         if worker_addr == "":
             conv.update_last_message(SERVER_ERROR_MSG)
-            chatbot_history[-1] = (chatbot_history[-1][0], SERVER_ERROR_MSG)
-            state.set_chatbot_history(chatbot_history)
-            yield (
-                state,
-                chatbot_history, #state.to_gradio_chatbot(),
-                disable_btn,
-                disable_btn,
-                disable_btn,
-                enable_btn,
-                enable_btn,
-                disable_textbox,
-            )
+            if USE_MM_CHATBOT:
+                chatbot_history[-1] = (chatbot_history[-1][0], SERVER_ERROR_MSG)
+                state.set_chatbot_history(chatbot_history)
+                yield (
+                    state,
+                    chatbot_history,
+                    disable_btn,
+                    disable_btn,
+                    disable_btn,
+                    enable_btn,
+                    enable_btn,
+                    disable_textbox,
+                )
+            else:
+                yield (
+                    state,
+                    state.to_gradio_chatbot(),
+                    disable_btn,
+                    disable_btn,
+                    disable_btn,
+                    enable_btn,
+                    enable_btn,
+                    disable_textbox,
+                )
 
             return
 
@@ -771,10 +788,12 @@ def bot_response(
 
     conv.update_last_message("▌")
     # chatbot_history.append(("▌", None))
-    chatbot_history[-1] = (chatbot_history[-1][0], "▌")
-    state.set_chatbot_history(chatbot_history)
-    yield (state, chatbot_history) + (disable_btn,) * 5 + (disable_textbox,)
-    # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
+    if USE_MM_CHATBOT:
+        chatbot_history[-1] = (chatbot_history[-1][0], "▌")
+        state.set_chatbot_history(chatbot_history)
+        yield (state, chatbot_history) + (disable_btn,) * 5 + (disable_textbox,)
+    else:
+        yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
 
     try:
         if apply_rate_limit and model_name in ["gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo"] and not request_allowed(ip):
@@ -783,20 +802,22 @@ def bot_response(
             conv.update_last_message(output)
             chatbot_history[-1] = (chatbot_history[-1][0], output)
             state.set_chatbot_history(chatbot_history)
-            # yield (state, state.to_gradio_chatbot()) + (
-            #     disable_btn,
-            #     disable_btn,
-            #     disable_btn,
-            #     enable_btn,
-            #     enable_btn,
-            # ) + (disable_textbox,)
-            yield (state, chatbot_history) + (
-                disable_btn,
-                disable_btn,
-                disable_btn,
-                enable_btn,
-                enable_btn,
-            ) + (disable_textbox,)
+            if USE_MM_CHATBOT:
+                yield (state, chatbot_history) + (
+                    disable_btn,
+                    disable_btn,
+                    disable_btn,
+                    enable_btn,
+                    enable_btn,
+                ) + (disable_textbox,)
+            else:
+                yield (state, state.to_gradio_chatbot()) + (
+                    disable_btn,
+                    disable_btn,
+                    disable_btn,
+                    enable_btn,
+                    enable_btn,
+                ) + (disable_textbox,)
             return
         else:
             for i, data in enumerate(stream_iter):
@@ -804,39 +825,45 @@ def bot_response(
                 if data.get("error_code", 0) == 0:
                     output = data["text"].strip()
                     conv.update_last_message(output + "▌")
-                    chatbot_history[-1] = (chatbot_history[-1][0], output + "▌")
-                    state.set_chatbot_history(chatbot_history)
-                    # yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
-                    yield (state, chatbot_history) + (disable_btn,) * 5 + (disable_textbox,)
+                    if USE_MM_CHATBOT:
+                        chatbot_history[-1] = (chatbot_history[-1][0], output + "▌")
+                        state.set_chatbot_history(chatbot_history)
+                        yield (state, chatbot_history) + (disable_btn,) * 5 + (disable_textbox,)
+                    else:
+                        yield (state, state.to_gradio_chatbot()) + (disable_btn,) * 5 + (disable_textbox,)
                 else:
                     output = data["text"] + f"\n\n(error_code: {data['error_code']})"
                     conv.update_last_message(output)
-                    chatbot_history[-1] = (chatbot_history[-1][0], output)
-                    state.set_chatbot_history(chatbot_history)
-                    # yield (state, state.to_gradio_chatbot()) + (
-                    #     disable_btn,
-                    #     disable_btn,
-                    #     disable_btn,
-                    #     enable_btn,
-                    #     enable_btn,
-                    # ) + (disable_textbox,)
-                    yield (state, chatbot_history) + (
-                        disable_btn,
-                        disable_btn,
-                        disable_btn,
-                        enable_btn,
-                        enable_btn,
-                    ) + (disable_textbox,)
+                    if USE_MM_CHATBOT:
+                        chatbot_history[-1] = (chatbot_history[-1][0], output)
+                        state.set_chatbot_history(chatbot_history)
+                        yield (state, chatbot_history) + (
+                            disable_btn,
+                            disable_btn,
+                            disable_btn,
+                            enable_btn,
+                            enable_btn,
+                        ) + (disable_textbox,)
+                    else:
+                        yield (state, state.to_gradio_chatbot()) + (
+                            disable_btn,
+                            disable_btn,
+                            disable_btn,
+                            enable_btn,
+                            enable_btn,
+                        ) + (disable_textbox,)
                     return
         
         output = data["text"].strip()
         if "vicuna" in model_name:
             output = post_process_code(output)
         conv.update_last_message(output)
-        chatbot_history[-1] = (chatbot_history[-1][0], output)
-        state.set_chatbot_history(chatbot_history)
-        # yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5 + (enable_textbox,)
-        yield (state, chatbot_history) + (enable_btn,) * 5 + (enable_textbox,)
+        if USE_MM_CHATBOT:
+            chatbot_history[-1] = (chatbot_history[-1][0], output)
+            state.set_chatbot_history(chatbot_history)
+            yield (state, chatbot_history) + (enable_btn,) * 5 + (enable_textbox,)
+        else:
+            yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5 + (enable_textbox,)
     except requests.exceptions.RequestException as e:
         error_info = traceback.format_exc()
         logger.info(f"An GRADIO_REQUEST_ERROR occurred: {e}. Traceback: {error_info}")
@@ -845,22 +872,24 @@ def bot_response(
             f"{SERVER_ERROR_MSG}\n\n"
             f"(error_code: {ErrorCode.GRADIO_REQUEST_ERROR}, {e})"
         )
-        chatbot_history[-1] = (chatbot_history[-1][0], f"{SERVER_ERROR_MSG}\n\n"f"(error_code: {ErrorCode.GRADIO_REQUEST_ERROR}, {e})")
-        state.set_chatbot_history(chatbot_history)
-        # yield (state, state.to_gradio_chatbot()) + (
-        #     disable_btn,
-        #     disable_btn,
-        #     disable_btn,
-        #     enable_btn,
-        #     enable_btn,
-        # ) + (disable_textbox,)
-        yield (state, chatbot_history) + (
-            disable_btn,
-            disable_btn,
-            disable_btn,
-            enable_btn,
-            enable_btn,
-        ) + (disable_textbox,)
+        if USE_MM_CHATBOT:
+            chatbot_history[-1] = (chatbot_history[-1][0], f"{SERVER_ERROR_MSG}\n\n"f"(error_code: {ErrorCode.GRADIO_REQUEST_ERROR}, {e})")
+            state.set_chatbot_history(chatbot_history)
+            yield (state, chatbot_history) + (
+                disable_btn,
+                disable_btn,
+                disable_btn,
+                enable_btn,
+                enable_btn,
+            ) + (disable_textbox,)
+        else:
+            yield (state, state.to_gradio_chatbot()) + (
+                disable_btn,
+                disable_btn,
+                disable_btn,
+                enable_btn,
+                enable_btn,
+            ) + (disable_textbox,)
         return
     except Exception as e:    
         error_info = traceback.format_exc()
@@ -870,22 +899,24 @@ def bot_response(
             f"{SERVER_ERROR_MSG}\n\n"
             f"(error_code: {ErrorCode.GRADIO_STREAM_UNKNOWN_ERROR}, {e})"
         )
-        chatbot_history[-1] = (chatbot_history[-1][0], f"{SERVER_ERROR_MSG}\n\n"f"(error_code: {ErrorCode.GRADIO_STREAM_UNKNOWN_ERROR}, {e})")
-        state.set_chatbot_history(chatbot_history)
-        # yield (state, state.to_gradio_chatbot()) + (
-        #     disable_btn,
-        #     disable_btn,
-        #     disable_btn,
-        #     enable_btn,
-        #     enable_btn,
-        # ) + (disable_textbox,)
-        yield (state, chatbot_history) + (
-            disable_btn,
-            disable_btn,
-            disable_btn,
-            enable_btn,
-            enable_btn,
-        ) + (disable_textbox,)
+        if USE_MM_CHATBOT:
+            chatbot_history[-1] = (chatbot_history[-1][0], f"{SERVER_ERROR_MSG}\n\n"f"(error_code: {ErrorCode.GRADIO_STREAM_UNKNOWN_ERROR}, {e})")
+            state.set_chatbot_history(chatbot_history)
+            yield (state, chatbot_history) + (
+                disable_btn,
+                disable_btn,
+                disable_btn,
+                enable_btn,
+                enable_btn,
+            ) + (disable_textbox,)
+        else:
+            yield (state, state.to_gradio_chatbot()) + (
+                disable_btn,
+                disable_btn,
+                disable_btn,
+                enable_btn,
+                enable_btn,
+            ) + (disable_textbox,)
         return
 
     finish_tstamp = time.time()

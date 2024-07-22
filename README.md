@@ -10,6 +10,7 @@ export WILDVISION_ARENA_LOGDIR="../log"
 export DOWNLOAD_DATASET=NA
 python -m arena.serve.controller --host='127.0.0.1' --port 21002
 python3 -m arena.serve.model_worker --model-path liuhaotian/llava-v1.5-13b --controller http://127.0.0.1:21002 --port 31002 --worker http://127.0.0.1:31002 --host=127.0.0.1  --num-gpus 1
+python3 -m arena.serve.model_worker --model-path gpt-4-vision-preview --controller http://127.0.0.1:21002 --port 31001 --worker http://127.0.0.1:31001 --host=127.0.0.1 
 python -m arena.serve.gradio_web_server_multi_new --share --port 8688 --controller-url http://127.0.0.1:21002
 ```
 

@@ -12,7 +12,9 @@ conda activate wildvision-arena
 Install packages.
 ```bash
 pip3 install --upgrade pip  # enable PEP 660 support
-pip3 install -e ".[model_worker,vision_arena,webui,api,dev,llm_judge]"
+pip3 install -e ".[model_worker,vision_arena,webui,api]"
+pip3 install gradio==4.37.2
+pip3 install gradio_client==1.0.2
 # pip3 install transformers==4.34.0
 
 ```
