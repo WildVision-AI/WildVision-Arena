@@ -22,6 +22,11 @@ from arena.serve.gradio_block_arena_anony import (
     load_demo_side_by_side_anony,
     set_global_vars_anony,
 )
+from arena.serve.gradio_block_arena_anony_video import (
+    build_side_by_side_ui_anony_video,
+    load_demo_side_by_side_anony_video,
+    set_global_vars_anony_video,
+)
 from arena.serve.gradio_block_arena_named import (
     build_side_by_side_ui_named,
     load_demo_side_by_side_named,
@@ -121,12 +126,14 @@ def load_demo(url_params, request: gr.Request):
     models_anony = list(set(models_anony))
 
     side_by_side_anony_updates = load_demo_side_by_side_anony(models_anony, url_params)
+    side_by_side_anony_video_updates = load_demo_side_by_side_anony_video(models_anony, url_params)
     side_by_side_anony_bench_updates = load_demo_side_by_side_anony_bench(models_anony, url_params)
     side_by_side_named_updates = load_demo_side_by_side_named(models, url_params)
     return (
         (gr.Tabs(selected=selected),)
         + single_updates
         + side_by_side_anony_updates
+        + side_by_side_anony_video_updates
         + side_by_side_anony_bench_updates
         + side_by_side_named_updates
     )
@@ -149,8 +156,11 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
             with gr.Tab("⚔️ Arena ", elem_id="arena-tab", id=0):
                 side_by_side_anony_list = build_side_by_side_ui_anony(models)
  
+            with gr.Tab("⚔️ Video Arena ", elem_id="arena-tab", id=1):
+                side_by_side_anony_video_list = build_side_by_side_ui_anony_video(models)
+
             if show_sbs_direct:               
-                with gr.Tab("⚔️ Arena (side-by-side)", elem_id="arena-tab", id=1):
+                with gr.Tab("⚔️ Arena (side-by-side)", elem_id="arena-tab", id=2):
                     side_by_side_named_list = build_side_by_side_ui_named(models)
 
                 # with gr.Tab("⚔️ Arena (bench)", id=2):
@@ -160,7 +170,7 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
                 #     single_model_list = build_single_model_ui(
                 #         models, add_promotion_links=True
                 #     )
-                with gr.Tab("💬 Direct Chat", elem_id="arena-tab", id=2):
+                with gr.Tab("💬 Direct Chat", elem_id="arena-tab", id=3):
                     single_model_list = build_single_model_chatbot(
                         models, add_promotion_links=True
                     )
@@ -170,7 +180,7 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
 
 
             if elo_results_file:
-                with gr.Tab("🏆 Leaderboard", elem_id="arena-tab", id=3):
+                with gr.Tab("🏆 Leaderboard", elem_id="arena-tab", id=4):
                     build_leaderboard_tab(elo_results_file, leaderboard_table_file)
             with gr.Tab("ℹ️ About Us", elem_id="arena-tab", id=5):
                 about = build_about()
@@ -187,6 +197,7 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
             [tabs]
             + single_model_list
             + side_by_side_anony_list
+            + side_by_side_anony_video_list
             + side_by_side_named_list,
             # _js=load_js,
         )
@@ -289,6 +300,7 @@ if __name__ == "__main__":
     set_global_vars(args.controller_url, args.moderate)
     set_global_vars_named(args.moderate)
     set_global_vars_anony(args.moderate)
+    set_global_vars_anony_video(args.moderate)
     set_global_vars_anony_bench(args.moderate)
     if args.anony_only_for_proprietary_model:
         models = get_model_list(

@@ -608,9 +608,8 @@ def bot_response(
     max_new_tokens = int(max_new_tokens)
 
     USE_MM_CHATBOT = False
-    chatbot_history = state.get_chatbot_history()
-    if chatbot_history is not None:
-        USE_MM_CHATBOT = True
+    if USE_MM_CHATBOT:
+        chatbot_history = state.get_chatbot_history()
     if state.skip_next:
         # This generate call is skipped due to invalid inputs
         state.skip_next = False
