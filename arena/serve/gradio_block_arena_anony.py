@@ -29,6 +29,7 @@ from arena.constants import (
     INFO_MD,
     VISITBENCH_DATASETS,
     TOUCHSTONE_DATASETS,
+    VIDEO_MODEL_LIST,
 )
 from arena.model.model_adapter import get_conversation_template
 from arena.serve.gradio_block_arena_named import flash_buttons
@@ -230,12 +231,16 @@ def get_sample_weight(model):
         weight *= 5
     return weight
 
-
 def get_battle_pair():
+    global models
     if len(models) == 1:
         return models[0], models[0]
     model_weights = []
+    new_models = [model for model in models if model in VIDEO_MODEL_LIST]
+    models = new_models
     for model in models:
+        if model in VIDEO_MODEL_LIST:
+            continue
         weight = get_sample_weight(model)
         model_weights.append(weight)
     total_weight = np.sum(model_weights)
@@ -480,7 +485,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     # model_name_B = gr.Textbox(visible=False, interactive=False)
 
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
-
+    models = [model for model in models if model not in VIDEO_MODEL_LIST]
     with gr.Blocks(elem_id="share-region-anony"):
         with gr.Accordion("🔍 Expand to see all active models.", open=False):
             model_description_md = get_model_description_md(models)

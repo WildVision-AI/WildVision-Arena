@@ -11,7 +11,17 @@ from arena.vlm_utils.llavavid.model.builder import load_pretrained_model
 from arena.vlm_utils.llavavid.utils import disable_torch_init
 from arena.vlm_utils.llavavid.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
-
+def load_video(video_path, for_get_frames_num=8):
+    from decord import VideoReader, cpu
+    import numpy as np
+    vr = VideoReader(video_path, ctx=cpu(0))
+    total_frame_num = len(vr)
+    # fps = round(vr.get_avg_fps())
+    # frame_idx = [i for i in range(0, len(vr), fps)]
+    uniform_sampled_frames = np.linspace(0, total_frame_num - 1,for_get_frames_num, dtype=int)
+    frame_idx = uniform_sampled_frames.tolist()
+    spare_frames = vr.get_batch(frame_idx).asnumpy()
+    return spare_frames
 
 @torch.inference_mode()
 def generate_stream_llavanext(model, tokenizer, processor, params, device, context_len, stream_interval, judge_sent_end=False):
@@ -24,20 +34,20 @@ def generate_stream_llavanext(model, tokenizer, processor, params, device, conte
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
         
-    import json
-    encoded_images = json.loads(params["prompt"]["video"])
+    # import json
+    # encoded_images = json.loads(params["prompt"]["video"])
     
-    vision_input = []
-    for i, im_b64 in enumerate(encoded_images):
-        im_bytes = base64.b64decode(im_b64)
-        im_file = BytesIO(im_bytes)
-        img = Image.open(im_file)
-        vision_input.append(img)
-
+    # vision_input = []
+    # for i, im_b64 in enumerate(encoded_images):
+    #     im_bytes = base64.b64decode(im_b64)
+    #     im_file = BytesIO(im_bytes)
+    #     img = Image.open(im_file)
+    #     vision_input.append(img)
+    vision_input = params["prompt"]["video"]
     ic(">>> generate_stream_llavanext")
 
     disable_torch_init()
-
+    vision_input = load_video(vision_input)
     video = processor.preprocess(vision_input, return_tensors="pt")["pixel_values"]
     video = video.to(model.device, dtype=torch.float16)
     video = [video]

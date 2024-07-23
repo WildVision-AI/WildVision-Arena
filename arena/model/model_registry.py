@@ -287,3 +287,11 @@ register_model_info(
     "https://github.com/NVlabs/LITA",
     "LITA by NVIDIA",
 )
+
+# Register LLaVA-NEXT-VIDEO
+register_model_info(
+    ["LLaVA-NeXT-Video-7B"],
+    "LLaVA-NeXT-Video",
+    "https://github.com/LLaVA-VL/LLaVA-NeXT/blob/inference/docs/LLaVA-NeXT-Video.md",
+    "LLaVA-NeXT-Video",
+)

@@ -605,7 +605,7 @@ def get_generate_stream_function(model_path: str):
     is_llavanext_stream = "llava-next" in model_path.lower()
     is_videollama2_stream = "videollama2" in model_path.lower()
 
-    ic(model_path)
+    ic(model_path, is_videollava_stream)
     if is_llavav15_stream:
         from arena.model.model_llava import generate_stream_llava_v15
         return generate_stream_llava_v15

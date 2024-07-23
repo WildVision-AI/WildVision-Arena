@@ -540,8 +540,20 @@ def model_worker_stream_iter(
             "echo": False,
         }
         input_text = gen_params["prompt"]["text"]
-
-
+    else:
+        ic(vision_input)
+        gen_params = {
+            "model": model_name,
+            "prompt": {"text":prompt, "video": vision_input},
+            "temperature": temperature,
+            "repetition_penalty": repetition_penalty,
+            "top_p": top_p,
+            "max_new_tokens": max_new_tokens,
+            "stop": conv.stop_str,
+            "stop_token_ids": conv.stop_token_ids,
+            "echo": False,
+        }
+        input_text = gen_params["prompt"]["text"]
     logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output
@@ -620,7 +632,7 @@ def bot_response(
         return
 
     conv, model_name = state.conv, state.model_name
-    logger.info(f"conv: {conv}")
+    # logger.info(f"conv: {conv}")
 
     ic(model_name)
     image = conv.get_vision_input()
@@ -1450,14 +1462,14 @@ def build_single_model_chatbot(models, add_promotion_links=False):
         )
     with gr.Row():
         gr.Examples(examples=[
-            [{"files": ["examples/dancing.mp4"], "text": "Describe the video in one sentence."}]
+            [{"files": ["examples/dancing.mp4"], "text": "Describe the video in one sentence."}],
+            [{"files": ["examples/map.png"], "text": "Given my horse's location on this map, what is the quickest route to reach it?"}],
+            [{"files": ["examples/timesquare.png"], "text": "What is the best way to commute from Trump Tower to the location shown in this image?"}]
         ], inputs=[chat_input])
 
         gr.Examples(examples=[
             [{"files": ["examples/ticket.png"], "text": "Which section's ticket would you recommend I purchase?"}], 
-            [{"files": ["examples/equation.png"], "text": "Can you derive Equation 6 from the image?"}],
-            [{"files": ["examples/map.png"], "text": "Given my horse's location on this map, what is the quickest route to reach it?"}],
-            [{"files": ["examples/timesquare.png"], "text": "What is the best way to commute from Trump Tower to the location shown in this image?"}]
+            [{"files": ["examples/equation.png"], "text": "Can you derive Equation 6 from the image?"}]
         ], inputs=[chat_input])
 
     # Register listeners

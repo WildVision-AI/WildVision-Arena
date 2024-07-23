@@ -23,6 +23,7 @@ model_worker = ["accelerate>=0.21", "peft", "sentencepiece", "torch", "torchvisi
 vision_arena = ["plotly"]
 vision_bench = ["datasets","tiktoken", "fire", 'reka-api', 'prettytable']
 webui = ["gradio"]
+video_arena = ["decord", "opencv-python", "torchvision"]
 train = ["einops", "flash-attn>=2.0", "wandb"]
 llm_judge = ["anthropic>=0.3", "ray", "polyglot", "pycld2", "morfessor", "scikit-learn"]
 dev = ["black==23.3.0", "pylint==2.8.2", "icecream", "Pillow", 'openai']

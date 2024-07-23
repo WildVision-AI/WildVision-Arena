@@ -19,6 +19,7 @@ from arena.constants import (
     INFO_MD,
     VISITBENCH_DATASETS,
     TOUCHSTONE_DATASETS,
+    VIDEO_MODEL_LIST,
 )
 from arena.model.model_adapter import get_conversation_template
 from arena.serve.gradio_web_server import (
@@ -358,7 +359,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     chatbots = [None] * num_sides
 
     notice = gr.Markdown(notice_markdown, elem_id="notice_markdown")
-
+    models = [model for model in models if model not in VIDEO_MODEL_LIST]
     with gr.Blocks(elem_id="share-region-named"):
         
 

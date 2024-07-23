@@ -103,6 +103,9 @@ def openai_api_stream_iter(
     logger.info(f"==== request ====\n{gen_params}")
 
     if image is not None:
+        # FIXME: support video and multi-image
+        # if type(image) == list:
+        #     image = image[0]
         res = generate(model_name, gen_params, image, messages)
         data = {
             "text": res,

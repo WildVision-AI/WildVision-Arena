@@ -41,6 +41,8 @@ WEB_IMG_URL_ROOT = os.getenv("WEB_IMG_URL_ROOT", "http://34.19.37.54:5090")
 # CPU Instruction Set Architecture
 CPU_ISA = os.getenv("CPU_ISA")
 
+VIDEO_MODEL_LIST = ["Video-LLaVA-7B", "LLaVA-NeXT-Video-7B"]
+
 HEADER_MD = """
 # ⚔️  WildVision Arena ⚔️ : Benchmarking Multimodal LLMs in the Wild
 by WildVision Team @ AI2 + UCSB + UWaterloo

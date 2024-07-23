@@ -2,6 +2,10 @@ import torch
 from icecream import ic
 from arena.vlm_utils.videollava.utils import disable_torch_init
 
+from io import BytesIO
+import base64
+from PIL import Image
+
 from arena.vlm_utils.videollava.model.builder import load_pretrained_model
 from arena.vlm_utils.videollava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 from arena.vlm_utils.videollava.conversation import conv_templates, SeparatorStyle
@@ -16,9 +20,17 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
         
-    import json
-    vision_input = torch.tensor(json.loads(params["prompt"]["video"]))
+    # import json
+    # # vision_input = torch.tensor(json.loads(params["prompt"]["video"]))
+
+    # encoded_images = json.loads(params["prompt"]["video"])
     
+    # vision_input = []
+    # for i, im_b64 in enumerate(encoded_images):
+    #     im_bytes = base64.b64decode(im_b64)
+    #     im_file = BytesIO(im_bytes)
+    #     img = Image.open(im_file)
+    #     vision_input.append(img)
     # conversation = [
     #     {
     #         "role": "User",
@@ -30,7 +42,8 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
     #         "content": ""
     #     }
     # ]
-    ic(">>> generate_stream_videollava")
+    vision_input = params["prompt"]["video"]
+    ic(f">>> generate_stream_videollava {vision_input}")
 
     disable_torch_init()
     # video = '/private/home/yujielu/downloads/datasets/VideoChatGPT/Test_Videos/v__B7rGFDRIww.mp4'
@@ -46,12 +59,16 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
     conv = conv_templates[conv_mode].copy()
     roles = conv.roles
 
-    # video_tensor = video_processor(video, return_tensors='pt')['pixel_values']
-    video_tensor = torch.stack([vision_input])
+    video_tensor = video_processor(vision_input, return_tensors='pt')['pixel_values']
     if type(video_tensor) is list:
         tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
     else:
         tensor = video_tensor.to(model.device, dtype=torch.float16)
+    # video_tensor = torch.stack([vision_input])
+    # if type(video_tensor) is list:
+    #     tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
+    # else:
+    #     tensor = video_tensor.to(model.device, dtype=torch.float16)
 
     print(f"{roles[1]}: {inp}")
     inp = ' '.join([DEFAULT_IMAGE_TOKEN] * model.get_video_tower().config.num_frames) + '\n' + inp

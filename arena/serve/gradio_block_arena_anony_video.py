@@ -29,6 +29,7 @@ from arena.constants import (
     INFO_MD,
     VISITBENCH_DATASETS,
     TOUCHSTONE_DATASETS,
+    VIDEO_MODEL_LIST,
 )
 from arena.model.model_adapter import get_conversation_template
 from arena.serve.gradio_block_arena_named import flash_buttons
@@ -53,6 +54,7 @@ from arena.utils import (
     build_logger,
     moderation_filter,
 )
+from icecream import ic
 
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
@@ -114,12 +116,14 @@ def vote_last_response(states, vote_type, reason_textbox, model_selectors, reque
 def save_vote_data(state, request: gr.Request):
     t = datetime.datetime.now()
     # save image
-    img_name = os.path.join(CONVERSATION_SAVE_DIR, 'images', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
-    while os.path.exists(img_name):
-        img_name = os.path.join(CONVERSATION_SAVE_DIR, 'images', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
-    image = np.array(state['image'], dtype='uint8')
-    image = Image.fromarray(image.astype('uint8')).convert('RGB')
-    image.save(img_name)
+    video_name = os.path.join(CONVERSATION_SAVE_DIR, 'images', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
+    while os.path.exists(video_name):
+        video_name = os.path.join(CONVERSATION_SAVE_DIR, 'images', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
+    # image = np.array(state['image'], dtype='uint8')
+    # image = Image.fromarray(image.astype('uint8')).convert('RGB')
+    # image.save(img_name)
+    # TODO: save video
+    print(state)
     # save conversation
     log_name = os.path.join(CONVERSATION_SAVE_DIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conversation.json")
     with open(log_name, 'a') as fout:
@@ -230,11 +234,13 @@ def get_sample_weight(model):
         weight *= 5
     return weight
 
-
 def get_battle_pair():
+    global models
     if len(models) == 1:
         return models[0], models[0]
     model_weights = []
+    new_models = [model for model in models if model in VIDEO_MODEL_LIST]
+    models = new_models
     for model in models:
         weight = get_sample_weight(model)
         model_weights.append(weight)
@@ -263,6 +269,7 @@ def get_battle_pair():
     # for p, w in zip(rival_models, rival_weights):
     #     print(p, w)
     rival_weights = rival_weights / np.sum(rival_weights)
+    ic(len(rival_models), rival_models)
     rival_idx = np.random.choice(len(rival_models), p=rival_weights)
     rival_model = rival_models[rival_idx]
 
@@ -335,7 +342,15 @@ def add_text(
         states[i].conv.append_message(states[i].conv.roles[1], None)
         states[i].skip_next = False
         # TODO: multiple images state
-        states[i].conv.set_vision_input(image)
+        # TODO: support video
+        if type(image) == str and image.endswith(".mp4"):
+            # from arena.utils import load_and_transform_video, get_video_transform
+            # # video = load_and_transform_video(image, get_video_transform("decord", 1), "decord")
+            # video = load_and_transform_video(image, get_video_transform("opencv", 1), "opencv")
+            # logger.info(f"type video{type(video)}")
+            states[i].conv.set_vision_input(image)
+        else:
+            states[i].conv.set_vision_input(image)
 
     slow_model_msg = ""
     for i in range(num_sides):
@@ -480,7 +495,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     # model_name_B = gr.Textbox(visible=False, interactive=False)
 
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
-
+    models = [model for model in models if model in VIDEO_MODEL_LIST]
     with gr.Blocks(elem_id="share-region-anony"):
         with gr.Accordion("🔍 Expand to see all active models.", open=False):
             model_description_md = get_model_description_md(models)
@@ -498,7 +513,8 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
                     clear_button.click(lambda: {selected_models: {"value": [], "__type__": "update"}}, inputs=[], outputs=[selected_models])
         with gr.Row():
             with gr.Column(scale=1):
-                imagebox = gr.Image(type="pil", height=550)
+                # imagebox = gr.Image(type="pil", height=550)
+                videobox = gr.Video(label="")
                 gr.Markdown(rule_markdown, elem_id="rule_markdown")
             for i in range(num_sides):
                 label = "Model A" if i == 0 else "Model B"
@@ -575,11 +591,11 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         )
     gr.Markdown(sample_markdown, elem_id="sample_markdown")
     gr.Examples(examples=[
-        ["examples/ticket.png", "Which section's ticket would you recommend I purchase?"], 
-        ["examples/equation.png", "Can you derive Equation 6 from the image?"],
-        ["examples/map.png", "Given my horse's location on this map, what is the quickest route to reach it?"],
-        ["examples/timesquare.png", "What is the best way to commute from Trump Tower to the location shown in this image?"]
-    ], inputs=[imagebox, textbox])
+        ["examples/messi.mp4", "Describe the video in one sentence."], 
+        ["examples/messi2.mp4", "Describe the video in one sentence."],
+        ["examples/bigbang.mp4", "Describe the video in one sentence."],
+        ["examples/friends.mp4", "Describe the video in one sentence."]
+    ], inputs=[videobox, textbox])
     gr.Markdown(info_markdown, elem_id="info_markdown")
     gr.Markdown(acknowledgment_md, elem_id="ack_markdown")
 
@@ -624,12 +640,12 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     clear_btn.click(
         clear_history,
         None,
-        states + chatbots + model_selectors + [textbox, imagebox] + btn_list + [reason_textbox] + [slow_warning],
+        states + chatbots + model_selectors + [textbox, videobox] + btn_list + [reason_textbox] + [slow_warning],
     )
     sample_btn.click(
         sample_input,
         None,
-        states + chatbots + model_selectors + [textbox, imagebox] + btn_list + [reason_textbox] + [slow_warning],
+        states + chatbots + model_selectors + [textbox, videobox] + btn_list + [reason_textbox] + [slow_warning],
     )
 #     share_js = """
 # function (a, b, c, d) {
@@ -655,7 +671,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
 
     textbox.submit(
         add_text,
-        states + model_selectors + [textbox, imagebox],
+        states + model_selectors + [textbox, videobox],
         states + chatbots + [textbox] + btn_list + [reason_textbox] + [slow_warning],
     ).then(
         bot_response_multi,
@@ -669,7 +685,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
 
     send_btn.click(
         add_text,
-        states + model_selectors + [textbox, imagebox],
+        states + model_selectors + [textbox, videobox],
         states + chatbots + [textbox] + btn_list + [reason_textbox],
     ).then(
         bot_response_multi,
