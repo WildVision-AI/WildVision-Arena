@@ -72,8 +72,8 @@ def set_global_vars_anony_video(enable_moderation_):
 
 def load_demo_side_by_side_anony_video(models_, url_params):
     global models, ALL_MODELS
-    models = models_
-    ALL_MODELS = models_
+    models = [model for model in models_ if model in VIDEO_MODEL_LIST]
+    ALL_MODELS = [model for model in models_ if model in VIDEO_MODEL_LIST]
 
     states = (None,) * num_sides
     selector_updates = (

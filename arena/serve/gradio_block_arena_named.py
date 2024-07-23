@@ -58,6 +58,7 @@ def set_global_vars_named(enable_moderation_):
 
 
 def load_demo_side_by_side_named(models, url_params):
+    models = [model for model in models if model not in VIDEO_MODEL_LIST]
     states = (None,) * num_sides
 
     model_left = models[0] if len(models) > 0 else ""
