@@ -562,7 +562,8 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         )
             
     with gr.Row() as button_row:
-        sample_btn = gr.Button(value="🎲 Sample Input", interactive=True)
+        # TODO: add video sample input
+        sample_btn = gr.Button(value="🎲 Sample Input", interactive=False)
 
         clear_btn = gr.Button(value="🎲 New Round", interactive=False)
         regenerate_btn = gr.Button(value="🔄  Regenerate", interactive=False)
@@ -596,9 +597,10 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     gr.Markdown(sample_markdown, elem_id="sample_markdown")
     gr.Examples(examples=[
         ["examples/messi.mp4", "Describe the video in one sentence."], 
-        ["examples/messi2.mp4", "Describe the video in one sentence."],
-        ["examples/bigbang.mp4", "Describe the video in one sentence."],
-        ["examples/friends.mp4", "Describe the video in one sentence."]
+        ["examples/recipe.mp4", "What are the ingredients being used?"], 
+        ["examples/messi2.mp4", "Who is the main character in the video?"],
+        ["examples/bigbang.mp4", "Why is Sheldon angry?"],
+        ["examples/friends.mp4", "Summarize funny things in the video."]
     ], inputs=[videobox, textbox])
     gr.Markdown(info_markdown, elem_id="info_markdown")
     gr.Markdown(acknowledgment_md, elem_id="ack_markdown")

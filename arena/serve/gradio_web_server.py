@@ -620,9 +620,10 @@ def bot_response(
     top_p = float(top_p)
     max_new_tokens = int(max_new_tokens)
 
-    USE_MM_CHATBOT = True
-    if USE_MM_CHATBOT:
-        chatbot_history = state.get_chatbot_history()
+    USE_MM_CHATBOT = False
+    chatbot_history = state.get_chatbot_history()
+    if chatbot_history is not None:
+        USE_MM_CHATBOT = True
     if state.skip_next:
         # This generate call is skipped due to invalid inputs
         state.skip_next = False
@@ -1464,7 +1465,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
     with gr.Row():
         gr.Examples(examples=[
             [{"files": ["examples/messi.mp4"], "text": "Describe the video in one sentence."}],
-            [{"files": ["examples/messi2.mp4"], "text": "Describe the video in one sentence."}],
+            [{"files": ["examples/recipe.mp4"], "text": "Describe the video in one sentence."}],
             [{"files": ["examples/bigbang.mp4"], "text": "Describe the video in one sentence."}],
             [{"files": ["examples/map.png"], "text": "Given my horse's location on this map, what is the quickest route to reach it?"}],
             [{"files": ["examples/timesquare.png"], "text": "What is the best way to commute from Trump Tower to the location shown in this image?"}]
