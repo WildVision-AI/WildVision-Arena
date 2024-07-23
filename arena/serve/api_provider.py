@@ -76,19 +76,26 @@ def openai_api_stream_iter(
     api_base=None,
     api_key=None,
 ):
-    import openai
+    # import openai
+    from openai import OpenAI
+    # is_azure = False
+    # if "azure" in model_name:
+    #     is_azure = True
+    #     openai.api_type = "azure"
+    #     openai.api_version = "2023-07-01-preview"
+    # else:
+    #     openai.api_type = "open_ai"
+    #     openai.api_version = None
 
-    is_azure = False
-    if "azure" in model_name:
-        is_azure = True
-        openai.api_type = "azure"
-        openai.api_version = "2023-07-01-preview"
-    else:
-        openai.api_type = "open_ai"
-        openai.api_version = None
+    # openai.api_base = api_base or "https://api.openai.com/v1"
+    # openai.api_key = api_key or os.environ["OPENAI_API_KEY"]
 
-    openai.api_base = api_base or "https://api.openai.com/v1"
-    openai.api_key = api_key or os.environ["OPENAI_API_KEY"]
+    client = OpenAI(
+        # defaults to os.environ.get("OPENAI_API_KEY")
+        api_key=api_key or os.environ["OPENAI_API_KEY"],
+        base_url=api_base or "https://api.openai.com/v1"
+    )
+    
     # if model_name == "gpt-4-turbo":
     #     model_name = "gpt-4-1106-preview"
 
@@ -123,22 +130,13 @@ def openai_api_stream_iter(
         #         }
         #         yield data
     else:
-        if is_azure:
-            res = openai.ChatCompletion.create(
-                engine=model_name,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_new_tokens,
-                stream=True,
-            )
-        else:
-            res = openai.ChatCompletion.create(
-                model=model_name,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_new_tokens,
-                stream=True,
-            )
+        res = client.ChatCompletion.create(
+            model=model_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_new_tokens,
+            stream=True,
+        )
         text = ""
         for chunk in res:
             if len(chunk["choices"]) > 0:

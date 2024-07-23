@@ -295,3 +295,10 @@ register_model_info(
     "https://github.com/LLaVA-VL/LLaVA-NeXT/blob/inference/docs/LLaVA-NeXT-Video.md",
     "LLaVA-NeXT-Video",
 )
+
+register_model_info(
+    ["VideoLLaMA2-7B"],
+    "VideoLLaMA2",
+    "https://github.com/DAMO-NLP-SG/VideoLLaMA2",
+    "VideoLLaMA2",
+)

@@ -442,14 +442,14 @@ def add_input_chatbot(state, model_selector, chatbot, chat_input, request: gr.Re
         if os.path.splitext(chat_input["files"][0])[1] in [".jpg", ".png"]:
             # TODO: support interleaved image
             image = load_image(chat_input["files"][0])
-            ic(type(image))
             logger.info(f"type image{type(image)}")
             conv.set_vision_input(image)
         elif os.path.splitext(chat_input["files"][0])[1] in [".mp4"]:
             # video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "decord")
-            video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "opencv")
-            ic(type(video))
-            logger.info(f"type video{type(video)}")
+            # video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "opencv")
+            # ic(type(video))
+            # logger.info(f"type video{type(video)}")
+            video = chat_input["files"][0]
             conv.set_vision_input(video)
     # state.set_chatbot_history(history)
     # return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
@@ -620,7 +620,7 @@ def bot_response(
     top_p = float(top_p)
     max_new_tokens = int(max_new_tokens)
 
-    USE_MM_CHATBOT = False
+    USE_MM_CHATBOT = True
     if USE_MM_CHATBOT:
         chatbot_history = state.get_chatbot_history()
     if state.skip_next:
@@ -1463,7 +1463,9 @@ def build_single_model_chatbot(models, add_promotion_links=False):
         )
     with gr.Row():
         gr.Examples(examples=[
-            [{"files": ["examples/dancing.mp4"], "text": "Describe the video in one sentence."}],
+            [{"files": ["examples/messi.mp4"], "text": "Describe the video in one sentence."}],
+            [{"files": ["examples/messi2.mp4"], "text": "Describe the video in one sentence."}],
+            [{"files": ["examples/bigbang.mp4"], "text": "Describe the video in one sentence."}],
             [{"files": ["examples/map.png"], "text": "Given my horse's location on this map, what is the quickest route to reach it?"}],
             [{"files": ["examples/timesquare.png"], "text": "What is the best way to commute from Trump Tower to the location shown in this image?"}]
         ], inputs=[chat_input])
