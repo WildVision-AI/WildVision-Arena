@@ -50,7 +50,8 @@ logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
 def load_demo(url_params, request: gr.Request):
     global models
-
+    if url_params is None:
+        url_params = {}
     ip = get_ip(request)
     logger.info(f"load_demo. ip: {ip}. params: {url_params}")
     ip_expiration_dict[ip] = time.time() + SESSION_EXPIRATION_TIME
