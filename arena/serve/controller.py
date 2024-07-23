@@ -122,6 +122,8 @@ class Controller:
     def list_models(self):
         model_names = set()
 
+        # self.remove_stale_workers_by_expiration()
+        self.refresh_all_workers()
         for w_name, w_info in self.worker_info.items():
             model_names.update(w_info.model_names)
 

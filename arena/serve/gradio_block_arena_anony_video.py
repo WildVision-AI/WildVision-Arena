@@ -80,8 +80,12 @@ def load_demo_side_by_side_anony_video(models_, url_params):
         gr.Markdown(visible=True),
         gr.Markdown(visible=True),
     )
-
-    return states + selector_updates
+    
+    model_choices_update = (gr.CheckboxGroup(choices=models),)
+    
+    model_description_md_updates = (gr.Markdown(get_model_description_md(models)),)
+    
+    return states + selector_updates + model_choices_update + model_description_md_updates
 
 
 def vote_last_response(states, vote_type, reason_textbox, model_selectors, request: gr.Request):
@@ -499,7 +503,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     with gr.Blocks(elem_id="share-region-anony"):
         with gr.Accordion("🔍 Expand to see all active models.", open=False):
             model_description_md = get_model_description_md(models)
-            gr.Markdown(model_description_md, elem_id="model_description_markdown")
+            model_description = gr.Markdown(model_description_md, elem_id="model_description_markdown")
         with gr.Row():
             with gr.Column(scale=1):
                 # with gr.Accordion("🎲 Choose models to sample from", open=True, elem_classes="accordion-label"):
@@ -694,4 +698,4 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     ).then(
         flash_buttons, [], btn_list + [reason_textbox]
     )
-    return states + model_selectors
+    return states + model_selectors + [selected_models, model_description]

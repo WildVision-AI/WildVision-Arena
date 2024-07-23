@@ -75,7 +75,9 @@ def load_demo_side_by_side_anony_bench(models_, url_params):
         gr.Markdown(visible=True),
     )
 
-    return states + selector_updates
+    model_description_md_updates = (gr.Markdown(get_model_description_md(models)),)
+    
+    return states + selector_updates + model_description_md_updates
 
 
 def vote_last_response(states, vote_type, model_selectors, request: gr.Request):
@@ -457,7 +459,7 @@ This tab aims to test a pair of anonymous models on a randomly sampled example f
     with gr.Blocks(elem_id="share-region-anony", css=block_css):
         with gr.Accordion("🔍 Expand to see Arena players", open=False):
             model_description_md = get_model_description_md(models)
-            gr.Markdown(model_description_md, elem_id="model_description_markdown")
+            model_description = gr.Markdown(model_description_md, elem_id="model_description_markdown")
         with gr.Row():
             imagebox = gr.Image(type="pil", height=550)
             for i in range(num_sides):
@@ -651,4 +653,4 @@ function (a, b, c, d) {
         flash_buttons, [], btn_list
     )
 
-    return states + model_selectors
+    return states + model_selectors + [model_description]
