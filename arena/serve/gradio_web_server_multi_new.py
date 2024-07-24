@@ -17,7 +17,7 @@ from arena.serve.gradio_block_arena_anony_bench import (
     load_demo_side_by_side_anony_bench,
     set_global_vars_anony_bench,
 )
-from arena.serve.gradio_block_arena_anony import (
+from arena.serve.gradio_block_arena_anony_withsafety import (
     build_side_by_side_ui_anony,
     load_demo_side_by_side_anony,
     set_global_vars_anony,
