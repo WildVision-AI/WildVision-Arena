@@ -11,6 +11,7 @@ import gradio as gr
 
 from arena.constants import (
     SESSION_EXPIRATION_TIME,
+    VIDEO_MODEL_LIST,
 )
 from arena.serve.gradio_block_arena_anony_bench import (
     build_side_by_side_ui_anony_bench,
@@ -125,10 +126,12 @@ def load_demo(url_params, request: gr.Request):
     #     models_anony.append(mdl)
     models_anony = list(set(models_anony))
 
-    side_by_side_anony_updates = load_demo_side_by_side_anony(models_anony, url_params)
-    side_by_side_anony_video_updates = load_demo_side_by_side_anony_video(models_anony, url_params)
-    side_by_side_anony_bench_updates = load_demo_side_by_side_anony_bench(models_anony, url_params)
-    side_by_side_named_updates = load_demo_side_by_side_named(models, url_params)
+    image_model_list = [model for model in models_anony if model not in VIDEO_MODEL_LIST]
+    video_model_list = [model for model in models_anony if model in VIDEO_MODEL_LIST]
+    side_by_side_anony_updates = load_demo_side_by_side_anony(image_model_list, url_params)
+    side_by_side_anony_video_updates = load_demo_side_by_side_anony_video(video_model_list, url_params)
+    side_by_side_anony_bench_updates = load_demo_side_by_side_anony_bench(image_model_list, url_params)
+    side_by_side_named_updates = load_demo_side_by_side_named(image_model_list, url_params)
     return (
         (gr.Tabs(selected=selected),)
         + single_updates
