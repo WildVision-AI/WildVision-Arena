@@ -52,7 +52,11 @@ python -m arena.serve.controller --host='0.0.0.0' --port 8888
 
 <!-- python -m arena.serve.gradio_web_server_multi --share --controller-url http://34.19.37.54:8888 --elo-results-file ./elo_results.pkl --leaderboard-table-file ./leaderboard.csv -->
 
-python -m arena.serve.gradio_web_server_multi --share --controller-url http://0.0.0.0:8888 --elo-results-file ./elo_results.pkl --leaderboard-table-file ./leaderboard.csv &
+<!-- python -m arena.serve.gradio_web_server_multi --share --controller-url http://0.0.0.0:8888 --elo-results-file ./elo_results.pkl --leaderboard-table-file ./leaderboard.csv & -->
+
+python -m arena.serve.gradio_web_server_multi_new --port 5679 --controller-url http://0.0.0.0:8888 --elo-results-file ./elo_results.pkl --leaderboard-table-file ./leaderboard.csv  
+
+<!-- http://34.19.37.54:5679/  -->
 
 bash scripts/restart_gradio.sh
 
@@ -63,8 +67,8 @@ http://34.19.37.54:5000
 ## API Models on GCP
 
 ```bash
+# python3 -m arena.serve.model_worker --model-path gemini-pro-vision --controller http://127.0.0.1:8888 --port 31003 --worker http://127.0.0.1:31003 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gpt-4-vision-preview --controller http://127.0.0.1:8888 --port 31001 --worker http://127.0.0.1:31001 --host=127.0.0.1 &
-python3 -m arena.serve.model_worker --model-path gemini-pro-vision --controller http://127.0.0.1:8888 --port 31003 --worker http://127.0.0.1:31003 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-opus-20240229 --controller http://127.0.0.1:8888 --port 31016 --worker http://127.0.0.1:31016 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-sonnet-20240229 --controller http://127.0.0.1:8888 --port 31019 --worker http://127.0.0.1:31019 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-haiku-20240307 --controller http://127.0.0.1:8888 --port 31020 --worker http://127.0.0.1:31020 --host=127.0.0.1 &
@@ -80,6 +84,8 @@ python3 -m arena.serve.model_worker --model-path qwen-vl-plus --controller http:
 python3 -m arena.serve.model_worker --model-path gpt-4-turbo --controller http://127.0.0.1:8888 --port 31030 --worker http://127.0.0.1:31030 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-5-sonnet-20240620 --controller http://127.0.0.1:8888 --port 31031 --worker http://127.0.0.1:31031 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 31032 --worker http://127.0.0.1:31032 --host=127.0.0.1 &
+
+
 ```
 
 ## URL monitor

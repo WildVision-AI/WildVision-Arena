@@ -375,14 +375,14 @@ def bot_response_multi(
 
     if state0 is None or state0.skip_next:
         # This generate call is skipped due to invalid inputs
-        logger.info(f"state0 is {state0}")
-        logger.info(f"skip_next is {state0.skip_next}")
-        logger.info(f"state0 (type: {type(state0)}): {state0}")
-        logger.info(f"state1 (type: {type(state1)}): {state1}")
-        logger.info(f"state0.to_gradio_chatbot(): {state0.to_gradio_chatbot()} --> type: {type(state0.to_gradio_chatbot())}")
-        logger.info(f"state1.to_gradio_chatbot(): {state1.to_gradio_chatbot()} --> type: {type(state1.to_gradio_chatbot())}")
-        logger.info(f"no_change_btn: {type(no_change_btn)}: {no_change_btn}")
-        logger.info(f"no_change_textbox: {type(no_change_textbox)}: {no_change_textbox}")
+        # logger.info(f"state0 is {state0}")
+        # logger.info(f"skip_next is {state0.skip_next}")
+        # logger.info(f"state0 (type: {type(state0)}): {state0}")
+        # logger.info(f"state1 (type: {type(state1)}): {state1}")
+        # logger.info(f"state0.to_gradio_chatbot(): {state0.to_gradio_chatbot()} --> type: {type(state0.to_gradio_chatbot())}")
+        # logger.info(f"state1.to_gradio_chatbot(): {state1.to_gradio_chatbot()} --> type: {type(state1.to_gradio_chatbot())}")
+        # logger.info(f"no_change_btn: {type(no_change_btn)}: {no_change_btn}")
+        # logger.info(f"no_change_textbox: {type(no_change_textbox)}: {no_change_textbox}")
 
         yield (
             state0,
