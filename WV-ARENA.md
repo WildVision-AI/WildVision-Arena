@@ -357,3 +357,22 @@ Dataset({
 """
 ```
 
+### Evaluator
+**Balanced Elo Rating**
+```bash
+# Submit battle release subset as a test leaderboard
+python scripts/upload_woprecompute_hf.py
+# Submit battle release subset as a test leaderboard, with balanced elo rating, using gpt4v on precomputed conversations
+python scripts/upload_precompute_hf.py
+```
+**Local Evaluator**
+```bash
+CUDA_VISIBLE_DEVICES=2 python -m arena.balance_elo_rating.local_evaluate --model_name "/share/edc/home/yujielu/project/uniscore_data/output_checkpoints/llava-v1.5/llava_evaluator_v2_0222"
+```
+
+
+### Model Eval
+**Evaluate Model**
+```bash
+CUDA_VISIBLE_DEVICES=2 python -m arena.balance_elo_rating.precompute --model_name "/share/edc/home/yujielu/ckpt_hub/otask_exp/exp/output_checkpoints/llava-v1.5/llava_625k_woimg0.95_1e5_1eps_bsz80/llava-v1.5-7b-095"
+```
