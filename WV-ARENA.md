@@ -1,3 +1,4 @@
+# WildVision-Arena (WV-Arena)
 ## Custom API
 1. Add API_STREAM_ITER (notice that even though the function name are all stream_iter, model stream generation is optional)
 ```python
