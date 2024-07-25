@@ -76,14 +76,14 @@ BORE_PORT_LaavaNextV=5503
 
 # Video-LLaVA
 
-CUDA_VISIBLE_DEVICES=0 /home/yuchenl/.conda/envs/arena-videollava/bin/python -m arena.serve.model_worker --model-path LanguageBind/Video-LLaVA-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_Vllava --worker http://${GCP_IP}:${BORE_PORT_Vllava} --host=0.0.0.0  --num-gpus 1
+CUDA_VISIBLE_DEVICES=0 /home/yuchenl/.conda/envs/arena-videollava/bin/python -m arena.serve.model_worker --model-path LanguageBind/Video-LLaVA-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_Vllava --worker http://${GCP_IP}:${BORE_PORT_Vllava} --host=0.0.0.0  --num-gpus 1 &
 
 # VideoLLaMA2
  
-CUDA_VISIBLE_DEVICES=1 /home/yuchenl/.conda/envs/arena-videollama/bin/python -m arena.serve.model_worker --model-path DAMO-NLP-SG/VideoLLaMA2-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_Vllama2 --worker http://${GCP_IP}:${BORE_PORT_Vllama2} --host=0.0.0.0  --num-gpus 1
+CUDA_VISIBLE_DEVICES=1 /home/yuchenl/.conda/envs/arena-videollama/bin/python -m arena.serve.model_worker --model-path DAMO-NLP-SG/VideoLLaMA2-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_Vllama2 --worker http://${GCP_IP}:${BORE_PORT_Vllama2} --host=0.0.0.0  --num-gpus 1 &
 
 # LLaVANeXT-Video
-CUDA_VISIBLE_DEVICES=2 /home/yuchenl/.conda/envs/arena-llavanextvideo/bin/python -m arena.serve.model_worker --model-path lmms-lab/LLaVA-NeXT-Video-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_LaavaNextV --worker http://${GCP_IP}:${BORE_PORT_LaavaNextV} --host=0.0.0.0  --num-gpus 1
+CUDA_VISIBLE_DEVICES=2 /home/yuchenl/.conda/envs/arena-llavanextvideo/bin/python -m arena.serve.model_worker --model-path lmms-lab/LLaVA-NeXT-Video-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_LaavaNextV --worker http://${GCP_IP}:${BORE_PORT_LaavaNextV} --host=0.0.0.0  --num-gpus 1 &
 ```
 
 
