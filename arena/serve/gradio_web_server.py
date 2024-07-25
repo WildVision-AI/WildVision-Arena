@@ -398,8 +398,6 @@ def add_input_chatbot(state, model_selector, chatbot, chat_input, request: gr.Re
     ip = get_ip(request)
     logger.info(f"add_input_chatbot. ip: {ip}.")
         
-    from icecream import ic
-    ic(chat_input["files"])
     if state is None:
         state = State(model_selector)
 
@@ -410,8 +408,6 @@ def add_input_chatbot(state, model_selector, chatbot, chat_input, request: gr.Re
         history.append(((x,), None))
     if chat_input["text"] is not None:
         history.append((chat_input["text"], None))
-    from icecream import ic
-    ic(history)
     state.set_chatbot_history(history)
 
     text = chat_input["text"]
@@ -545,7 +541,6 @@ def model_worker_stream_iter(
         }
         input_text = gen_params["prompt"]["text"]
     elif type(vision_input) == bytes:
-        ic(type(vision_input))
         gen_params = {
             "model": model_name,
             "prompt": {"text":prompt, "video": json.dumps(base64.b64encode(vision_input).decode('utf-8'))},
@@ -558,7 +553,6 @@ def model_worker_stream_iter(
             "echo": False,
         }
         input_text = gen_params["prompt"]["text"]
-    ic(type(vision_input))
     logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output

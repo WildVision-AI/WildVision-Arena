@@ -127,14 +127,22 @@ def save_vote_data(state, request: gr.Request):
     # image = Image.fromarray(image.astype('uint8')).convert('RGB')
     # image.save(img_name)
     # TODO: save video
-    print(state)
     # save conversation
-    log_name = os.path.join(CONVERSATION_SAVE_DIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conversation.json")
-    with open(log_name, 'a') as fout:
-        log_data = state.copy()
-        log_data['image'] = img_name
-        log_data['ip'] = request.client.host
-        fout.write(json.dumps(state) + "\n")
+    finish_tstamp = time.time()
+    vision_input = state.get_vision_input()
+    if type(vision_input) == bytes:
+        VIDDIR = os.path.join(CONVERSATION_SAVE_DIR, os.path.splitext(os.path.basename(get_conv_log_filename()))[0] + "input_videos")
+        if not os.path.exists(VIDDIR): os.makedirs(VIDDIR)
+        video_name = os.path.join(VIDDIR, f"input_video_{state.conv_id}_{round(finish_tstamp, 4)}.mp4")
+        with open(video_name, "wb") as f:
+            f.write(vision_input)
+
+        log_name = os.path.join(CONVERSATION_SAVE_DIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conversation.json")
+        with open(log_name, 'a') as fout:
+            log_data = state.copy()
+            log_data['video'] = video_name
+            log_data['ip'] = request.client.host
+            fout.write(json.dumps(state) + "\n")
 
 def leftvote_last_response(
     state0, state1, reason_textbox, model_selector0, model_selector1, request: gr.Request
@@ -252,8 +260,6 @@ def get_battle_pair():
     model_weights = model_weights / total_weight
     chosen_idx = np.random.choice(len(models), p=model_weights)
     chosen_model = models[chosen_idx]
-    # for p, w in zip(models, model_weights):
-    #     print(p, w)
 
     rival_models = []
     rival_weights = []
@@ -270,10 +276,7 @@ def get_battle_pair():
             weight = total_weight / len(BATTLE_TARGETS[chosen_model])
         rival_models.append(model)
         rival_weights.append(weight)
-    # for p, w in zip(rival_models, rival_weights):
-    #     print(p, w)
     rival_weights = rival_weights / np.sum(rival_weights)
-    ic(len(rival_models), rival_models)
     rival_idx = np.random.choice(len(rival_models), p=rival_weights)
     rival_model = rival_models[rival_idx]
 

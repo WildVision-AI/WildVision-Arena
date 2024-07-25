@@ -22,7 +22,6 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
         
 
     import json
-    ic(">>>> vision_input")
     vision_input = BytesIO(base64.b64decode(json.loads(params["prompt"]["video"])))
     # save tmp video file
     import datetime

@@ -24,7 +24,6 @@ def generate_stream_videollama2(model, tokenizer, processor, params, device, con
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
         
     import json
-    ic(">>>> vision_input")
     vision_input = BytesIO(base64.b64decode(json.loads(params["prompt"]["video"])))
     # save tmp video file
     import datetime
