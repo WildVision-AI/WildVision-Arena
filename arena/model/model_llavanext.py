@@ -33,17 +33,20 @@ def generate_stream_llavanext(model, tokenizer, processor, params, device, conte
     top_p = float(params.get("top_p", 0.7))
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
-        
-    # import json
-    # encoded_images = json.loads(params["prompt"]["video"])
-    
-    # vision_input = []
-    # for i, im_b64 in enumerate(encoded_images):
-    #     im_bytes = base64.b64decode(im_b64)
-    #     im_file = BytesIO(im_bytes)
-    #     img = Image.open(im_file)
-    #     vision_input.append(img)
-    vision_input = params["prompt"]["video"]
+
+    import json
+    ic(">>>> vision_input")
+    vision_input = BytesIO(base64.b64decode(json.loads(params["prompt"]["video"])))
+    # save tmp video file
+    import datetime
+    cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    temp_file = f"/tmp/wvarena/video/{str(cur_time)}.mp4"
+    import os
+    if not os.path.exists(os.path.dirname(temp_file)):
+        os.makedirs(os.path.dirname(temp_file))
+    with open(temp_file, "wb") as output_file:
+        output_file.write(vision_input.getvalue())
+    vision_input = temp_file
     ic(">>> generate_stream_llavanext")
 
     disable_torch_init()

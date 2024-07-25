@@ -352,7 +352,10 @@ def add_text(
             # # video = load_and_transform_video(image, get_video_transform("decord", 1), "decord")
             # video = load_and_transform_video(image, get_video_transform("opencv", 1), "opencv")
             # logger.info(f"type video{type(video)}")
-            states[i].conv.set_vision_input(image)
+            # states[i].conv.set_vision_input(image)
+            with open(image, "rb") as f:
+                video_bytes = f.read()
+            states[i].conv.set_vision_input(video_bytes)
         else:
             states[i].conv.set_vision_input(image)
 

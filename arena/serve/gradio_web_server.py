@@ -449,8 +449,11 @@ def add_input_chatbot(state, model_selector, chatbot, chat_input, request: gr.Re
             # video = load_and_transform_video(chat_input["files"][0], get_video_transform("decord", 1), "opencv")
             # ic(type(video))
             # logger.info(f"type video{type(video)}")
-            video = chat_input["files"][0]
-            conv.set_vision_input(video)
+            # video = chat_input["files"][0]
+            with open(chat_input["files"][0], "rb") as f:
+                video_bytes = f.read()
+            # conv.set_vision_input(video)
+            conv.set_vision_input(video_bytes)
     # state.set_chatbot_history(history)
     # return (state, state.to_gradio_chatbot(), gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
     return (state, history, gr.MultimodalTextbox(value=None, interactive=False)) + (disable_btn,) * 5 + (disable_textbox,)
@@ -541,11 +544,11 @@ def model_worker_stream_iter(
             "echo": False,
         }
         input_text = gen_params["prompt"]["text"]
-    else:
-        ic(vision_input)
+    elif type(vision_input) == bytes:
+        ic(type(vision_input))
         gen_params = {
             "model": model_name,
-            "prompt": {"text":prompt, "video": vision_input},
+            "prompt": {"text":prompt, "video": json.dumps(base64.b64encode(vision_input).decode('utf-8'))},
             "temperature": temperature,
             "repetition_penalty": repetition_penalty,
             "top_p": top_p,
@@ -555,6 +558,7 @@ def model_worker_stream_iter(
             "echo": False,
         }
         input_text = gen_params["prompt"]["text"]
+    ic(type(vision_input))
     logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output
@@ -941,6 +945,11 @@ def bot_response(
         if not os.path.exists(IMGDIR): os.makedirs(IMGDIR)
         # input_image.save(os.path.join(IMGDIR, f"input_image_{int(finish_tstamp)}.png"))
         vision_input.save(os.path.join(IMGDIR, f"input_image_{state.conv_id}_{round(finish_tstamp, 4)}.png"))
+    elif type(vision_input) == bytes:
+        VIDDIR = os.path.join(LOGDIR, os.path.splitext(os.path.basename(get_conv_log_filename()))[0] + "input_videos")
+        if not os.path.exists(VIDDIR): os.makedirs(VIDDIR)
+        with open(os.path.join(VIDDIR, f"input_video_{state.conv_id}_{round(finish_tstamp, 4)}.mp4"), "wb") as f:
+            f.write(vision_input)
 
     # TODO: add save video for each conversation!
 
