@@ -120,12 +120,9 @@ def vote_last_response(states, vote_type, reason_textbox, model_selectors, reque
 def save_vote_data(state, request: gr.Request):
     t = datetime.datetime.now()
     # save image
-    video_name = os.path.join(CONVERSATION_SAVE_DIR, 'images', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
+    video_name = os.path.join(CONVERSATION_SAVE_DIR, 'videos', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
     while os.path.exists(video_name):
-        video_name = os.path.join(CONVERSATION_SAVE_DIR, 'images', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
-    # image = np.array(state['image'], dtype='uint8')
-    # image = Image.fromarray(image.astype('uint8')).convert('RGB')
-    # image.save(img_name)
+        video_name = os.path.join(CONVERSATION_SAVE_DIR, 'videos', f"{t.year}-{t.month:02d}-{t.day:02d}-{str(uuid.uuid4())}.png")
     # TODO: save video
     # save conversation
     finish_tstamp = time.time()
@@ -351,11 +348,6 @@ def add_text(
         # TODO: multiple images state
         # TODO: support video
         if type(image) == str and image.endswith(".mp4"):
-            # from arena.utils import load_and_transform_video, get_video_transform
-            # # video = load_and_transform_video(image, get_video_transform("decord", 1), "decord")
-            # video = load_and_transform_video(image, get_video_transform("opencv", 1), "opencv")
-            # logger.info(f"type video{type(video)}")
-            # states[i].conv.set_vision_input(image)
             with open(image, "rb") as f:
                 video_bytes = f.read()
             states[i].conv.set_vision_input(video_bytes)
@@ -512,18 +504,15 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
             model_description = gr.Markdown(model_description_md, elem_id="model_description_markdown")
         with gr.Row():
             with gr.Column(scale=1):
-                # with gr.Accordion("🎲 Choose models to sample from", open=True, elem_classes="accordion-label"):
                 with gr.Accordion("🎲 Choose **N>=3 models** to sample from. If you choose fewer than 3, we will randomly select ones for you. ⬇️ ", open=True, elem_classes="accordion-label"):
                     model_options = models
                     selected_models = gr.CheckboxGroup(model_options, info="", value=model_options, show_label=False, elem_id="select-models", interactive=True) 
                     selected_models.change(update_sample_models, selected_models, None)
-                    # confirm_button = gr.Button("Confirm", elem_classes="btn_boderline_gray", scale=1)
                     clear_button = gr.Button("Clear", elem_classes="btn_boderline_gray", scale=1)
                     # clear the selected_models
                     clear_button.click(lambda: {selected_models: {"value": [], "__type__": "update"}}, inputs=[], outputs=[selected_models])
         with gr.Row():
             with gr.Column(scale=1):
-                # imagebox = gr.Image(type="pil", height=550)
                 videobox = gr.Video(label="")
                 gr.Markdown(rule_markdown, elem_id="rule_markdown")
             for i in range(num_sides):

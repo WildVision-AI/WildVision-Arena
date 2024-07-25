@@ -16,7 +16,7 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
     prompt = params["prompt"]["text"]
     
     temperature = float(params.get("temperature", 0.2))
-    top_p = float(params.get("top_p", 0.7))
+    # top_p = float(params.get("top_p", 0.7))
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
         
@@ -33,17 +33,11 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
     with open(temp_file, "wb") as output_file:
         output_file.write(vision_input.getvalue())
     vision_input = temp_file
-    ic(f">>> generate_stream_videollava {vision_input}")
+    ic(">>> generate_stream_videollava")
 
     disable_torch_init()
-    # video = '/private/home/yujielu/downloads/datasets/VideoChatGPT/Test_Videos/v__B7rGFDRIww.mp4'
-    inp = prompt#'Why is this video funny?'
-    # model_path = 'LanguageBind/Video-LLaVA-7B'
-    # cache_dir = 'cache_dir'
-    # device = 'cuda'
-    # load_4bit, load_8bit = True, False
-    # model_name = get_model_name_from_path(model_path)
-    # tokenizer, model, processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit, device=device, cache_dir=cache_dir)
+    inp = prompt
+
     video_processor = processor['video']
     conv_mode = "llava_v1"
     conv = conv_templates[conv_mode].copy()
@@ -54,11 +48,6 @@ def generate_stream_videollava(model, tokenizer, processor, params, device, cont
         tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
     else:
         tensor = video_tensor.to(model.device, dtype=torch.float16)
-    # video_tensor = torch.stack([vision_input])
-    # if type(video_tensor) is list:
-    #     tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
-    # else:
-    #     tensor = video_tensor.to(model.device, dtype=torch.float16)
 
     print(f"{roles[1]}: {inp}")
     inp = ' '.join([DEFAULT_IMAGE_TOKEN] * model.get_video_tower().config.num_frames) + '\n' + inp

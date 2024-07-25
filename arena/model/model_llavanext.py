@@ -26,17 +26,16 @@ def load_video(video_path, for_get_frames_num=8):
 @torch.inference_mode()
 def generate_stream_llavanext(model, tokenizer, processor, params, device, context_len, stream_interval, judge_sent_end=False):
     prompt = params["prompt"]["text"]
-
     cur_prompt = prompt
     
     temperature = float(params.get("temperature", 0.2))
-    top_p = float(params.get("top_p", 0.7))
+    # top_p = float(params.get("top_p", 0.7))
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
 
     import json
     vision_input = BytesIO(base64.b64decode(json.loads(params["prompt"]["video"])))
-    # save tmp video file
+
     import datetime
     cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     temp_file = f"/tmp/wvarena/video/{str(cur_time)}.mp4"
@@ -75,25 +74,19 @@ def generate_stream_llavanext(model, tokenizer, processor, params, device, conte
 
     with torch.inference_mode():
         model.update_prompt([[cur_prompt]])
-        # import pdb;pdb.set_trace()
         output_ids = model.generate(
             inputs=input_ids.to(model.device), 
             images=video, 
             attention_mask=attention_masks.to(model.device), 
             modalities="video", 
-            do_sample=True, 
+            do_sample=do_sample, 
             temperature=temperature, 
             max_new_tokens=max_new_tokens, 
             use_cache=True, 
             stopping_criteria=[stopping_criteria]
         )
-        # import pdb;pdb.set_trace()
-        # output_ids = model.generate(inputs=input_ids, images=video, attention_mask=attention_masks, modalities="video", do_sample=True, temperature=0.2, use_cache=True, stopping_criteria=[stopping_criteria])
 
     outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
-    # print(f"Question: {prompt}\n")
-    # print(f"Response: {outputs}\n")
-    # import pdb;pdb.set_trace()
     if outputs.endswith(stop_str):
         outputs = outputs[: -len(stop_str)]
     outputs = outputs.strip()

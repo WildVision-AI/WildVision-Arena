@@ -19,13 +19,13 @@ def generate_stream_videollama2(model, tokenizer, processor, params, device, con
     prompt = prompt.strip("[INST]").strip("[/INST]").strip(" ")
 
     temperature = float(params.get("temperature", 0.2))
-    top_p = float(params.get("top_p", 0.7))
+    # top_p = float(params.get("top_p", 0.7))
     do_sample = temperature > 0.0
     max_new_tokens = min(int(params.get("max_new_tokens", 200)), 200)
         
     import json
     vision_input = BytesIO(base64.b64decode(json.loads(params["prompt"]["video"])))
-    # save tmp video file
+
     import datetime
     cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     temp_file = f"/tmp/wvarena/video/{str(cur_time)}.mp4"
@@ -39,11 +39,7 @@ def generate_stream_videollama2(model, tokenizer, processor, params, device, con
     ic(">>> generate_stream_videollama2")
 
     modal_list = ['video']
-    # default_mm_token = DEFAULT_MMODAL_TOKEN["VIDEO"]
-    # modal_token_index = MMODAL_TOKEN_INDEX["VIDEO"]
 
-    # video = process_video(vision_input, processor, model.config.image_aspect_ratio).to(dtype=torch.float16, device='cuda', non_blocking=True)
-    # video = [video]
     tensor = process_video(vision_input, processor, model.config.image_aspect_ratio).to(dtype=torch.float16, device='cuda', non_blocking=True)
     default_mm_token = DEFAULT_MMODAL_TOKEN["VIDEO"]
     modal_token_index = MMODAL_TOKEN_INDEX["VIDEO"]
@@ -56,7 +52,6 @@ def generate_stream_videollama2(model, tokenizer, processor, params, device, con
     conv.append_message(conv.roles[0], question)
     conv.append_message(conv.roles[1], None)
     prompt = conv.get_prompt()
-    print(prompt)
     input_ids = tokenizer_MMODAL_token(prompt, tokenizer, modal_token_index, return_tensors='pt').unsqueeze(0).to('cuda:0')
 
     with torch.inference_mode():
