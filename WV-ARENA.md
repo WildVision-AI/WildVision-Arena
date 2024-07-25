@@ -318,3 +318,42 @@ python -m arena.serve.gradio_web_server_multi --share --port 1213 --controller-u
 
 # python -m arena.serve.gradio_web_server_multi --share --controller-url http://127.0.0.1:21002 --elo-results-file /home/yuchenl/Arena-Elo/results/latest/elo_results.pkl --leaderboard-table-file /leaderboard.csv &
 ```
+
+
+
+## Leaderboard
+
+### Monitoring 
+
+```bash
+
+```
+
+### Testing Our Evaluator
+```bash
+CUDA_VISIBLE_DEVICES=4 python3 -m arena.serve.model_worker --model-path /share/edc/home/yujielu/project/uniscore_data/output_checkpoints/llava/llava-v1.5_evaluator --controller http://127.0.0.1:21002 --port 31020 --worker http://127.0.0.1:31020 --host=127.0.0.1  --num-gpus 1
+```
+
+
+### Precompute generations
+
+```bash
+# launch by model name
+CUDA_VISIBLE_DEVICES=0 python -m arena.balance_elo_rating.precompute --model_name "liuhaotian/llava-v1.6-vicuna-7b"
+# launch by worker addr
+python -m arena.balance_elo_rating.precompute --worker_addr "http://{worker_addr}:{port}" 
+```
+Generation results are saved in `./arena/balance_elo_rating/gen_results/{model_name}`
+
+To load the precomputed generations, use the following command:
+```python
+import datasets
+dataset = datasets.load_from_disk('./arena/balance_elo_rating/gen_results/{model_name}')
+"""
+Dataset({
+    features: ['question_id', 'model', 'conversation', 'language', 'image', 'turn'],
+    num_rows: 5
+})
+"""
+```
+
