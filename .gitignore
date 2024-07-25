@@ -163,3 +163,4 @@ cython_debug/
 
 *convinput_images/
 cache_dir/
+hf_*

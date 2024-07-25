@@ -25,6 +25,8 @@ Follow [Video-LLaVA Install](https://github.com/PKU-YuanGroup/Video-LLaVA/blob/m
 ```bash
 conda create -n arena-videollava --clone wildvision-arena
 conda activate arena-videollava
+pip install transformers==4.31.0
+pip install bitsandbytes
 pip install decord opencv-python git+https://github.com/facebookresearch/pytorchvideo.git@28fe037d212663c6a24f373b94cc5d478c8c1a1d
 ```
 
@@ -32,6 +34,7 @@ pip install decord opencv-python git+https://github.com/facebookresearch/pytorch
 ```bash
 conda create -n arena-llavanextvideo --clone wildvision-arena
 conda activate arena-llavanextvideo
+pip install bitsandbytes
 pip install transformers@git+https://github.com/huggingface/transformers.git@1c39974a4c4036fd641bc1191cc32799f85715a4
 ```
 

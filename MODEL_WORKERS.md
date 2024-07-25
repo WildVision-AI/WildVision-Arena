@@ -48,14 +48,42 @@ cargo install bore-cli
 ```bash
 bash scripts/run_bore.sh
 # bash scripts/restart_models.sh qwen &
-bash scripts/restart_models.sh cogvlm & 
-bash scripts/restart_models.sh minicpm  &
-bash scripts/restart_models.sh llava7b &
-bash scripts/restart_models.sh llava34b &
-bash scripts/restart_models.sh uform &
-bash scripts/restart_models.sh tinyllava  &
-bash scripts/restart_models.sh deepseek  &
-bash scripts/restart_models.sh bunny  &
+
+bash scripts/restart_models.sh minicpm  & # 0
+bash scripts/restart_models.sh tinyllava  & # 0
+bash scripts/restart_models.sh cogvlm &  # 1
+bash scripts/restart_models.sh llava7b & # 2
+bash scripts/restart_models.sh llava34b & # 3,4
+bash scripts/restart_models.sh uform & # 5
+bash scripts/restart_models.sh deepseek  & # 5
+bash scripts/restart_models.sh bunny  & # 5 
+
+####################  
+
+GCP_IP=34.19.37.54
+
+LOCAL_PORT_Vllava=31021
+LOCAL_PORT_Vllama2=31022
+LOCAL_PORT_LaavaNextV=31023
+
+# bore local $LOCAL_PORT_Vllava --to 34.19.37.54 &
+# bore local $LOCAL_PORT_Vllama2 --to 34.19.37.54 &
+# bore local $LOCAL_PORT_LaavaNextV --to 34.19.37.54 &
+
+BORE_PORT_Vllava=5552
+BORE_PORT_Vllama2=5585
+BORE_PORT_LaavaNextV=5503
+
+# Video-LLaVA
+
+CUDA_VISIBLE_DEVICES=0 /home/yuchenl/.conda/envs/arena-videollava/bin/python -m arena.serve.model_worker --model-path LanguageBind/Video-LLaVA-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_Vllava --worker http://${GCP_IP}:${BORE_PORT_Vllava} --host=0.0.0.0  --num-gpus 1
+
+# VideoLLaMA2
+ 
+CUDA_VISIBLE_DEVICES=1 /home/yuchenl/.conda/envs/arena-videollama/bin/python -m arena.serve.model_worker --model-path DAMO-NLP-SG/VideoLLaMA2-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_Vllama2 --worker http://${GCP_IP}:${BORE_PORT_Vllama2} --host=0.0.0.0  --num-gpus 1
+
+# LLaVANeXT-Video
+CUDA_VISIBLE_DEVICES=2 /home/yuchenl/.conda/envs/arena-llavanextvideo/bin/python -m arena.serve.model_worker --model-path lmms-lab/LLaVA-NeXT-Video-7B --controller http://${GCP_IP}:8888 --port $LOCAL_PORT_LaavaNextV --worker http://${GCP_IP}:${BORE_PORT_LaavaNextV} --host=0.0.0.0  --num-gpus 1
 ```
 
 
