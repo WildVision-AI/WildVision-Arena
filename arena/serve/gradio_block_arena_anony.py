@@ -29,7 +29,6 @@ from arena.constants import (
     INFO_MD,
     VISITBENCH_DATASETS,
     TOUCHSTONE_DATASETS,
-    VIDEO_MODEL_LIST,
 )
 from arena.model.model_adapter import get_conversation_template
 from arena.serve.gradio_block_arena_named import flash_buttons
@@ -71,8 +70,10 @@ def set_global_vars_anony(enable_moderation_):
 
 def load_demo_side_by_side_anony(models_, url_params):
     global models, ALL_MODELS
-    models = [model for model in models_ if model not in VIDEO_MODEL_LIST]
-    ALL_MODELS = [model for model in models_ if model not in VIDEO_MODEL_LIST]
+    models = models_
+    ALL_MODELS = models_
+    # models = [model for model in models_ if model not in VIDEO_MODEL_LIST]
+    # ALL_MODELS = [model for model in models_ if model not in VIDEO_MODEL_LIST]
 
     states = (None,) * num_sides
     selector_updates = (
@@ -240,11 +241,11 @@ def get_battle_pair():
     if len(models) == 1:
         return models[0], models[0]
     model_weights = []
-    new_models = [model for model in models if model in VIDEO_MODEL_LIST]
-    models = new_models
+    # new_models = [model for model in models if model in VIDEO_MODEL_LIST]
+    # models = new_models
     for model in models:
-        if model in VIDEO_MODEL_LIST:
-            continue
+        # if model in VIDEO_MODEL_LIST:
+            # continue
         weight = get_sample_weight(model)
         model_weights.append(weight)
     total_weight = np.sum(model_weights)
@@ -489,7 +490,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
     # model_name_B = gr.Textbox(visible=False, interactive=False)
 
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
-    models = [model for model in models if model not in VIDEO_MODEL_LIST]
+    # models = [model for model in models if model not in VIDEO_MODEL_LIST]
     with gr.Blocks(elem_id="share-region-anony"):
         with gr.Accordion("🔍 Expand to see all active models.", open=False):
             model_description_md = get_model_description_md(models)

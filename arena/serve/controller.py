@@ -53,6 +53,7 @@ class WorkerInfo:
     queue_length: int
     check_heart_beat: bool
     last_heart_beat: str
+    model_type: str = None
 
 
 def heart_beat_controller(controller):
@@ -92,8 +93,11 @@ class Controller:
             check_heart_beat,
             time.time(),
         )
-        if worker_status.get("type") == "video":
-            VIDEO_MODEL_LIST.extend(worker_status["model_names"])
+        model_type = worker_status.get("info", {}).get("type")
+        if model_type == "video" or worker_name in VIDEO_MODEL_LIST:
+            self.worker_info[worker_name].model_type = "video"
+        else:
+            self.worker_info[worker_name].model_type = "image"
 
         logger.info(f"Register done: {worker_name}, {worker_status}")
         return True
@@ -130,6 +134,22 @@ class Controller:
         for w_name, w_info in self.worker_info.items():
             model_names.update(w_info.model_names)
 
+        return list(model_names)
+    
+    def list_image_models(self):
+        model_names = set()
+        self.refresh_all_workers()
+        for w_name, w_info in self.worker_info.items():
+            if w_info.model_type == "image":
+                model_names.update(w_info.model_names)
+        return list(model_names)
+    
+    def list_video_models(self):
+        model_names = set()
+        self.refresh_all_workers()
+        for w_name, w_info in self.worker_info.items():
+            if w_info.model_type == "video":
+                model_names.update(w_info.model_names)
         return list(model_names)
 
     def get_worker_address(self, model_name: str):
@@ -282,6 +302,15 @@ async def list_models():
     models = controller.list_models()
     return {"models": models}
 
+@app.post("/list_image_models")
+async def list_video_models():
+    models = controller.list_image_models()
+    return {"models": models}
+
+@app.post("/list_video_models")
+async def list_video_models():
+    models = controller.list_video_models()
+    return {"models": models}
 
 @app.post("/get_worker_address")
 async def get_worker_address(request: Request):

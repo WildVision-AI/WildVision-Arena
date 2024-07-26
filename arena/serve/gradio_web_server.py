@@ -181,12 +181,17 @@ def get_conv_log_filename():
 
 
 def get_model_list(
-    controller_url, register_openai_compatible_models, add_chatgpt, add_claude, add_palm
+    controller_url, register_openai_compatible_models, add_chatgpt, add_claude, add_palm, model_type=None,
 ):
     if controller_url:
         # ret = requests.post(controller_url + "/refresh_all_workers")
         # assert ret.status_code == 200
-        ret = requests.post(controller_url + "/list_models")
+        if not model_type:
+            ret = requests.post(controller_url + "/list_models")
+        elif model_type == "image":
+            ret = requests.post(controller_url + "/list_image_models")
+        elif model_type == "video":
+            ret = requests.post(controller_url + "/list_video_models")
         models = ret.json()["models"]
     else:
         models = []

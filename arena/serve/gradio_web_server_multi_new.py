@@ -11,7 +11,6 @@ import gradio as gr
 
 from arena.constants import (
     SESSION_EXPIRATION_TIME,
-    VIDEO_MODEL_LIST,
 )
 from arena.serve.gradio_block_arena_anony_bench import (
     build_side_by_side_ui_anony_bench,
@@ -91,6 +90,22 @@ def load_demo(url_params, request: gr.Request):
                 False,
                 False,
             )
+            video_model_list = get_model_list(
+                args.controller_url,
+                args.register_openai_compatible_models,
+                False,
+                False,
+                False,
+                model_type="video",
+            )
+            image_model_list = get_model_list(
+                args.controller_url,
+                args.register_openai_compatible_models,
+                False,
+                False,
+                False,
+                model_type="image",
+            )
         else:
             models = get_model_list(
                 args.controller_url,
@@ -99,23 +114,40 @@ def load_demo(url_params, request: gr.Request):
                 args.add_claude,
                 args.add_palm,
             )
+            video_model_list = get_model_list(
+                args.controller_url,
+                args.register_openai_compatible_models,
+                args.add_chatgpt,
+                args.add_claude,
+                args.add_palm,
+                model_type="video",
+            )
+            image_model_list = get_model_list(
+                args.controller_url,
+                args.register_openai_compatible_models,
+                args.add_chatgpt,
+                args.add_claude,
+                args.add_palm,
+                model_type="image",
+            )
 
     single_updates = load_demo_single(models, url_params)
 
-    models_anony = list(models)
+    added_models_anony = []
     if args.anony_only_for_proprietary_model:
         # Only enable these models in anony battles.
         if args.add_chatgpt:
-            models_anony += [
+            added_models_anony += [
                 "gpt-4-0314",
                 "gpt-4-0613",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
             ]
         if args.add_claude:
-            models_anony += ["claude-2.1", "claude-2.0", "claude-1", "claude-instant-1"]
+            added_models_anony += ["claude-2.1", "claude-2.0", "claude-1", "claude-instant-1"]
         if args.add_palm:
-            models_anony += ["gemini-pro"]
+            added_models_anony += ["gemini-pro"]
+    
     # TODO: uncomment to add LLM anony models
     # anony_only_models = [
     #     "claude-1",
@@ -124,10 +156,10 @@ def load_demo(url_params, request: gr.Request):
     # ]
     # for mdl in anony_only_models:
     #     models_anony.append(mdl)
-    models_anony = list(set(models_anony))
-
-    image_model_list = [model for model in models_anony if model not in VIDEO_MODEL_LIST]
-    video_model_list = [model for model in models_anony if model in VIDEO_MODEL_LIST]
+    # models_anony = list(set(models)) + added_models_anony # commented for it's not used
+    image_model_list = list(set(image_model_list)) + added_models_anony
+    # video_model_list = list(set(video_model_list)) + added_models_anony # commented for it's not used
+    
     side_by_side_anony_updates = load_demo_side_by_side_anony(image_model_list, url_params)
     side_by_side_anony_video_updates = load_demo_side_by_side_anony_video(video_model_list, url_params)
     side_by_side_anony_bench_updates = load_demo_side_by_side_anony_bench(image_model_list, url_params)
@@ -143,6 +175,9 @@ def load_demo(url_params, request: gr.Request):
 
 
 def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct=True):
+    image_models = models["image"]
+    video_models = models["video"]
+    models = models["all"]
     text_size = gr.themes.sizes.text_md
     if args.show_terms_of_use:
         load_js = get_window_url_params_with_tos_js
@@ -157,14 +192,14 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
     ) as demo:
         with gr.Tabs() as tabs:
             with gr.Tab("⚔️ Arena ", elem_id="arena-tab", id=0):
-                side_by_side_anony_list = build_side_by_side_ui_anony(models)
+                side_by_side_anony_list = build_side_by_side_ui_anony(image_models)
  
             with gr.Tab("⚔️ Video Arena ", elem_id="arena-tab", id=1):
-                side_by_side_anony_video_list = build_side_by_side_ui_anony_video(models)
+                side_by_side_anony_video_list = build_side_by_side_ui_anony_video(video_models)
 
             if show_sbs_direct:               
                 with gr.Tab("⚔️ Arena (side-by-side)", elem_id="arena-tab", id=2):
-                    side_by_side_named_list = build_side_by_side_ui_named(models)
+                    side_by_side_named_list = build_side_by_side_ui_named(image_models)
 
                 # with gr.Tab("⚔️ Arena (bench)", id=2):
                 #     side_by_side_anony_list = build_side_by_side_ui_anony_bench(models)
@@ -313,6 +348,22 @@ if __name__ == "__main__":
             False,
             False,
         )
+        video_model_list = get_model_list(
+            args.controller_url,
+            args.register_openai_compatible_models,
+            False,
+            False,
+            False,
+            model_type="video",
+        )
+        image_model_list = get_model_list(
+            args.controller_url,
+            args.register_openai_compatible_models,
+            False,
+            False,
+            False,
+            model_type="image",
+        )
     else:
         models = get_model_list(
             args.controller_url,
@@ -321,6 +372,28 @@ if __name__ == "__main__":
             args.add_claude,
             args.add_palm,
         )
+        video_model_list = get_model_list(
+            args.controller_url,
+            args.register_openai_compatible_models,
+            args.add_chatgpt,
+            args.add_claude,
+            args.add_palm,
+            model_type="video",
+        )
+        image_model_list = get_model_list(
+            args.controller_url,
+            args.register_openai_compatible_models,
+            args.add_chatgpt,
+            args.add_claude,
+            args.add_palm,
+            model_type="image",
+        )
+    
+    all_models = {
+        "all": models,
+        "image": image_model_list,
+        "video": video_model_list
+    }
 
     # Set authorization credentials
     auth = None
@@ -328,7 +401,7 @@ if __name__ == "__main__":
         auth = parse_gradio_auth_creds(args.gradio_auth_path)
 
     # Launch the demo
-    demo = build_demo(models, args.elo_results_file, args.leaderboard_table_file)
+    demo = build_demo(all_models, args.elo_results_file, args.leaderboard_table_file)
     # deprecation: concurrency_count=args.concurrency_count, 
     demo.queue(
         status_update_rate=10, api_open=False
