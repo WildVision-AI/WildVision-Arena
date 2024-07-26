@@ -603,8 +603,7 @@ def get_generate_stream_function(model_path: str):
     is_idefics_stream = "idefics2-local" in model_path.lower()
     
     is_videollava_stream = "video-llava" in model_path.lower()
-    is_llavanext_stream = "llava-next-video" in model_path.lower() and "qwen" not in model_path.lower()
-    is_llavanext_qwen_stream = "llava-next-video" in model_path.lower() and "qwen" in model_path.lower()
+    is_llavanext_stream = "llava-next" in model_path.lower()
     is_videollama2_stream = "videollama2" in model_path.lower()
 
     ic(model_path, is_videollava_stream)
@@ -644,9 +643,6 @@ def get_generate_stream_function(model_path: str):
     elif is_llavanext_stream:
         from arena.model.model_llavanext import generate_stream_llavanext
         return generate_stream_llavanext
-    elif is_llavanext_qwen_stream:
-        from arena.model.model_llavanext import generate_stream_llavanext_qwen
-        return generate_stream_llavanext_qwen
     elif is_videollama2_stream:
         from arena.model.model_videollama2 import generate_stream_videollama2
         return generate_stream_videollama2
