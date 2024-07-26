@@ -553,6 +553,8 @@ def model_worker_stream_iter(
             "echo": False,
         }
         input_text = gen_params["prompt"]["text"]
+    else:
+        raise gr.Error("Should provide image or video as input")
     logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output

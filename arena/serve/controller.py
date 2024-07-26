@@ -24,6 +24,7 @@ from arena.constants import (
     WORKER_API_TIMEOUT,
     ErrorCode,
     SERVER_ERROR_MSG,
+    VIDEO_MODEL_LIST
 )
 from arena.utils import build_logger
 
@@ -91,6 +92,8 @@ class Controller:
             check_heart_beat,
             time.time(),
         )
+        if worker_status.get("type") == "video":
+            VIDEO_MODEL_LIST.extend(worker_status["model_names"])
 
         logger.info(f"Register done: {worker_name}, {worker_status}")
         return True
