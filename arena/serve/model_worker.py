@@ -146,7 +146,7 @@ class ModelWorker(BaseModelWorker):
         elif self.is_llavanext_stream or self.is_llavanext_qwen_stream:
             cache_dir = 'cache_dir'
             device = 'cuda'
-            load_4bit, load_8bit = False, False
+            load_4bit, load_8bit = True, False
             from arena.vlm_utils.llavavid.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
             model_name = get_model_name_from_path(model_path)
             # import pdb; pdb.set_trace()
