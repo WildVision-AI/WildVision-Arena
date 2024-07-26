@@ -94,7 +94,7 @@ class Controller:
             time.time(),
         )
         model_type = worker_status.get("info", {}).get("type")
-        if model_type == "video" or worker_name in VIDEO_MODEL_LIST:
+        if model_type == "video" or any([model_name in VIDEO_MODEL_LIST for model_name in worker_status["model_names"]]):
             self.worker_info[worker_name].model_type = "video"
         else:
             self.worker_info[worker_name].model_type = "image"
