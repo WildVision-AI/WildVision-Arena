@@ -31,6 +31,10 @@ from arena.vlm_utils.llavavid.mm_utils import get_anyres_image_grid_shape
 import math
 
 
+def rank0_print(*args):
+    if local_rank == 0:
+        print(*args)
+
 class LlavaMetaModel:
 
     def __init__(self, config):
@@ -240,6 +244,7 @@ class LlavaMetaForCausalLM(ABC):
         self, input_ids, position_ids, attention_mask, past_key_values, labels,
         images, modalities, image_sizes=None,prompts=None
     ):
+        # print(self.config)
         vision_tower = self.get_vision_tower()
         if vision_tower is None or images is None or input_ids.shape[1] == 1:
             return input_ids, position_ids, attention_mask, past_key_values, None, labels

@@ -143,12 +143,13 @@ class ModelWorker(BaseModelWorker):
             model_name = get_model_name_from_path(model_path)
             from arena.vlm_utils.videollava.model.builder import load_pretrained_model
             self.tokenizer, self.model, self.processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit, device=device, cache_dir=cache_dir)
-        elif self.is_llavanext_stream:
+        elif self.is_llavanext_stream or self.is_llavanext_qwen_stream:
             cache_dir = 'cache_dir'
             device = 'cuda'
-            load_4bit, load_8bit = True, False
+            load_4bit, load_8bit = False, False
             from arena.vlm_utils.llavavid.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
             model_name = get_model_name_from_path(model_path)
+            # import pdb; pdb.set_trace()
             from arena.vlm_utils.llavavid.model.builder import load_pretrained_model
             self.tokenizer, self.model, self.processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit)
         elif self.is_videollama2_stream:
@@ -174,6 +175,7 @@ class ModelWorker(BaseModelWorker):
         
 
         self.device = device
+        # import pdb;pdb.set_trace()
         if self.tokenizer is not None and self.tokenizer.pad_token == None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
         try:
