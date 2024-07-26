@@ -79,7 +79,7 @@ def load_demo_side_by_side_anony(models_, url_params):
         gr.Markdown(visible=True),
     )
     
-    model_choices_update = (gr.CheckboxGroup(choices=models),)
+    model_choices_update = (gr.CheckboxGroup(choices=models, value=models),)
     
     model_description_md_updates = (gr.Markdown(get_model_description_md(models)),)
     
