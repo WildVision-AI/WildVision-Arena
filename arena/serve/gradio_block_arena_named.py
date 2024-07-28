@@ -72,6 +72,7 @@ def load_demo_side_by_side_named(models, url_params):
         gr.Dropdown(choices=models, value=model_left, visible=True),
         gr.Dropdown(choices=models, value=model_right, visible=True),
     )
+    print("Side by side models", models)
     
     model_description_md_updates = (gr.Markdown(get_model_description_md(models)),)
 
