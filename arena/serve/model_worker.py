@@ -87,7 +87,8 @@ class ModelWorker(BaseModelWorker):
         self.is_yivl_stream = "yi-vl" in model_path.lower() and not "plus" in model_path.lower()
         self.is_idefics_stream = "idefics2-local" in model_path.lower()
         self.is_videollava_stream = "video-llava" in model_path.lower()
-        self.is_llavanext_stream = "llava-next" in model_path.lower()
+        self.is_llavanext_stream = "llava-next" in model_path.lower() and not "llava-next-72b" in model_path.lower()
+        self.is_llavanext_qwen_stream = "llava-next-video-qwen" in model_path.lower()
         self.is_videollama2_stream = "videollama2" in model_path.lower()
 
         if self.is_llava_stream or self.is_llavav15_stream:

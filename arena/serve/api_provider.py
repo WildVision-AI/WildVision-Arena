@@ -460,6 +460,7 @@ def yivl_api_stream_iter(model_name, messages, temperature, top_p, max_new_token
         yield data
         
 def llava_api_stream_iter(model_name, messages, temperature, top_p, max_new_tokens, image):
+    from openai import OpenAI
     gen_params = {
         "prompt": messages,
         "temperature": temperature,
