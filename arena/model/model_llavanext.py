@@ -13,13 +13,14 @@ from arena.vlm_utils.llavavid.utils import disable_torch_init
 from arena.vlm_utils.llavavid.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
 def load_video(video_path, for_get_frames_num):
+    import numpy as np
     vr = VideoReader(video_path, ctx=cpu(0))
     total_frame_num = len(vr)
     fps = round(vr.get_avg_fps())
     frame_idx = [i for i in range(0, len(vr), fps)]
     # sample_fps = args.for_get_frames_num if total_frame_num > args.for_get_frames_num else total_frame_num
     if len(frame_idx) > for_get_frames_num:
-        sample_fps = args.for_get_frames_num
+        sample_fps = for_get_frames_num
         uniform_sampled_frames = np.linspace(0, total_frame_num - 1, sample_fps, dtype=int)
         frame_idx = uniform_sampled_frames.tolist()
     spare_frames = vr.get_batch(frame_idx).asnumpy()
