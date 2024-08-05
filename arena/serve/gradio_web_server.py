@@ -644,17 +644,19 @@ def bot_response(
     ic(model_name)
     image = conv.get_vision_input()
     if model_name in [
-        "gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo",
+        "gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo", "gpt-4o-2024-05-13"
     ]:
+        vision_input = conv.get_vision_input()
         prompt = conv.to_openai_api_messages()
         stream_iter = openai_api_stream_iter(
-            model_name, prompt, temperature, top_p, max_new_tokens, image
+            model_name, prompt, temperature, top_p, max_new_tokens, vision_input
         )
     elif model_name in [
         "gemini-pro-vision", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest",
     ]:
+        vision_input = conv.get_vision_input()
         stream_iter = gemini_vision_api_stream_iter(
-            model_name, conv.messages[-2][1], temperature, top_p, max_new_tokens, image
+            model_name, conv.messages[-2][1], temperature, top_p, max_new_tokens, vision_input
         )
     elif model_name in [
         "idefics2-8b", "idefics2-8b-chatty",

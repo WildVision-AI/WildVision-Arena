@@ -4,6 +4,12 @@ from json import loads
 import os
 import random
 import time
+import cv2
+import io
+import numpy as np
+from PIL import Image
+import torch
+import torchvision.transforms as transforms
 
 from arena.utils import build_logger
 from arena.constants import WORKER_API_TIMEOUT
@@ -25,10 +31,48 @@ def convert_pil_to_base64(image):
     image.save(buffered, format="JPEG")
     img_str = base64.b64encode(buffered.getvalue())
     return img_str.decode('utf-8')
-    
-def generate(model_name, gen_params, image, messages, is_yivl_api=False):
+
+
+def get_vision_input(vision_input):
+    if isinstance(vision_input, Image.Image):
+        return [vision_input]
+    elif isinstance(vision_input, torch.Tensor):
+        video_tensor_list = vision_input.tolist()
+        transform = transforms.ToPILImage()
+        return [transform(tensor) for tensor in video_tensor_list]
+    elif isinstance(vision_input, list) and all(isinstance(img, Image.Image) for img in vision_input):
+        return vision_input
+    elif type(vision_input) == bytes:
+        vision_input = io.BytesIO(vision_input)
+        import datetime
+        cur_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        temp_file = f"/tmp/wvarena/video/{str(cur_time)}.mp4"
+        import os
+        if not os.path.exists(os.path.dirname(temp_file)):
+            os.makedirs(os.path.dirname(temp_file))
+        with open(temp_file, "wb") as output_file:
+            output_file.write(vision_input.getvalue())
+        cap = cv2.VideoCapture(temp_file)
+        
+        image_list = []
+        num_frames = 8 # Default sampling 8 frames
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        sample_interval = total_frames // num_frames
+        for i in range(num_frames):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, i * sample_interval)
+            ret, frame = cap.read()
+            if ret:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                image = Image.fromarray(frame_rgb)
+                image_list.append(image)
+            else:
+                print(f"Error: Could not read frame at position {i * sample_interval}")
+
+        return image_list
+        
+
+def generate(model_name, gen_params, vision_input, messages, is_yivl_api=False):
     from openai import OpenAI
-    img_bs64 = convert_pil_to_base64(image)
     if is_yivl_api:
         client = OpenAI(
             # defaults to os.environ.get("OPENAI_API_KEY")
@@ -39,19 +83,24 @@ def generate(model_name, gen_params, image, messages, is_yivl_api=False):
         client = OpenAI()
     input_messages = messages
     # FIXME: support various images in history; similar to what we did in reka messages
-    if image is not None:
+    if vision_input is not None:
+        image_list = get_vision_input(vision_input)
         # text_message = input_messages[1]["content"]
         text_message = input_messages[-1]["content"]
         # input_messages[1]["content"] = [
         input_messages[-1]["content"] = [
             {"type": "text", "text": text_message},
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{img_bs64}"
-                }
-            }
         ]
+        if image_list:
+            for image_pil in image_list:
+                base64_image = convert_pil_to_base64(image_pil)
+                input_messages[-1]["content"].append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{base64_image}",
+                        "detail": "auto"
+                    },},)
+
     ic(model_name)
     response = client.chat.completions.create(
     model=model_name,#"yi-vl-plus" if is_yivl_api else "gpt-4-vision-preview",
@@ -72,7 +121,7 @@ def openai_api_stream_iter(
     temperature,
     top_p,
     max_new_tokens,
-    image=None,
+    vision_input=None,
     api_base=None,
     api_key=None,
 ):
@@ -108,12 +157,12 @@ def openai_api_stream_iter(
         "max_new_tokens": max_new_tokens,
     }
     logger.info(f"==== request ====\n{gen_params}")
-
-    if image is not None:
+    
+    if vision_input is not None:
         # FIXME: support video and multi-image
         # if type(image) == list:
         #     image = image[0]
-        res = generate(model_name, gen_params, image, messages)
+        res = generate(model_name, gen_params, vision_input, messages)
         data = {
             "text": res,
             "error_code": 0,
@@ -233,7 +282,7 @@ def init_palm_chat(model_name):
     return chat
 
 
-def gemini_vision_api_stream_iter(model_name, message, temperature, top_p, max_new_tokens, image):
+def gemini_vision_api_stream_iter(model_name, message, temperature, top_p, max_new_tokens, vision_input):
     import google.generativeai as genai
 
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
@@ -241,7 +290,20 @@ def gemini_vision_api_stream_iter(model_name, message, temperature, top_p, max_n
     model = genai.GenerativeModel(model_name)
 
     # no streaming version
-    response = model.generate_content([message, image])
+    # response = model.generate_content([message, image])
+    content = [message, ]
+    image_list = get_vision_input(vision_input)
+    for image_pil in image_list:
+        content.append(image_pil)
+
+    response = model.generate_content(
+        content,
+        generation_config=genai.types.GenerationConfig(
+            max_output_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+    )
     response.resolve()
     
     output_result = response.text
