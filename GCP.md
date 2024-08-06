@@ -21,7 +21,6 @@ export HF_API_TOKEN=YOUR_API_KEY
 ```
 
 ```bash
-
 # sudo mount /dev/sdb /mnt/disks/logs/
 
 sudo apt update
@@ -79,12 +78,16 @@ python3 -m arena.serve.model_worker --model-path gpt-4o --controller http://127.
 python3 -m arena.serve.model_worker --model-path gemini-1.5-flash-latest --controller http://127.0.0.1:8888 --port 31025 --worker http://127.0.0.1:31025 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path minicpm-llama3-v --controller http://127.0.0.1:8888 --port 31026 --worker http://127.0.0.1:31026 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path Reka-Core --controller http://127.0.0.1:8888 --port 31027 --worker http://127.0.0.1:31027 --host=127.0.0.1 &
-python3 -m arena.serve.model_worker --model-path qwen-vl-max --controller http://127.0.0.1:8888 --port 31028 --worker http://127.0.0.1:31028 --host=127.0.0.1 &
-python3 -m arena.serve.model_worker --model-path qwen-vl-plus --controller http://127.0.0.1:8888 --port 31029 --worker http://127.0.0.1:31029 --host=127.0.0.1 &
+# python3 -m arena.serve.model_worker --model-path qwen-vl-max --controller http://127.0.0.1:8888 --port 31028 --worker http://127.0.0.1:31028 --host=127.0.0.1 &
+# python3 -m arena.serve.model_worker --model-path qwen-vl-plus --controller http://127.0.0.1:8888 --port 31029 --worker http://127.0.0.1:31029 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gpt-4-turbo --controller http://127.0.0.1:8888 --port 31030 --worker http://127.0.0.1:31030 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-5-sonnet-20240620 --controller http://127.0.0.1:8888 --port 31031 --worker http://127.0.0.1:31031 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 31032 --worker http://127.0.0.1:31032 --host=127.0.0.1 &
 
+
+# add llava-next-72b 
+python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 32010 --worker http://127.0.0.1:32010 --host=127.0.0.1 &
+python3 -m arena.serve.model_worker --model-path gpt-4o-2024-05-13 --controller http://127.0.0.1:8888 --port 32011 --worker http://127.0.0.1:32011 --host=127.0.0.1 &
 
 ```
 
