@@ -174,7 +174,7 @@ def load_demo(url_params, request: gr.Request):
     )
 
 
-def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct=True):
+def build_demo(models, elo_results_file, leaderboard_table_file, video_elo_results_file, video_leaderboard_table_file, show_sbs_direct=True):
     image_models = models["image"]
     video_models = models["video"]
     models = models["all"]
@@ -219,7 +219,7 @@ def build_demo(models, elo_results_file, leaderboard_table_file, show_sbs_direct
 
             if elo_results_file:
                 with gr.Tab("🏆 Leaderboard", elem_id="arena-tab", id=4):
-                    build_leaderboard_tab(elo_results_file, leaderboard_table_file)
+                    build_leaderboard_tab(elo_results_file, leaderboard_table_file, video_elo_results_file, video_leaderboard_table_file)
             with gr.Tab("ℹ️ About Us", elem_id="arena-tab", id=5):
                 about = build_about()
 
@@ -327,6 +327,12 @@ if __name__ == "__main__":
         "--leaderboard-table-file", type=str, help="Load leaderboard results and plots"
     )
     parser.add_argument(
+        "--video-elo-results-file", type=str, help="Load leaderboard results and plots for video models"
+    )
+    parser.add_argument(
+        "--video-leaderboard-table-file", type=str, help="Load leaderboard results and plots for video models"
+    )
+    parser.add_argument(
         "--gradio-root-path",
         type=str,
         help="Sets the gradio root path, eg /abc/def. Useful when running behind a reverse-proxy or at a custom URL path prefix",
@@ -401,7 +407,7 @@ if __name__ == "__main__":
         auth = parse_gradio_auth_creds(args.gradio_auth_path)
 
     # Launch the demo
-    demo = build_demo(all_models, args.elo_results_file, args.leaderboard_table_file)
+    demo = build_demo(all_models, args.elo_results_file, args.leaderboard_table_file, args.video_elo_results_file, args.video_leaderboard_table_file)
     # deprecation: concurrency_count=args.concurrency_count, 
     demo.queue(
         status_update_rate=10, api_open=False

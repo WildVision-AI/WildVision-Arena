@@ -1,0 +1,9 @@
+key,Model,Arena Elo rating (anony),Arena Elo rating (full),License,Organization,Link
+gpt-4o,gpt-4o,1123.0289068055995,1129.0648905862674,Proprietary,OpenAI,https://openai.com/research/gpt-4
+LLaVA-NeXT-Video-32B-Qwen,LLaVA-NeXT-Video-32B-Qwen,1120.9484266957236,1109.4022598171473,Apache-2.0,LLaVA-NeXT Team,https://huggingface.co/lmms-lab/LLaVA-NeXT-Video-32B-Qwen
+InternVL2-8B,InternVL2-8B,1061.736165208922,1064.2732904016743,MIT,OpenGVLab,https://huggingface.co/OpenGVLab/InternVL2-8B
+gemini-1.5-pro-latest,gemini-1.5-pro-latest,1032.5492000624397,1057.2244964069243,Proprietary,Google,https://gemini.google.com/app
+cogvlm2-video-llama3-chat,cogvlm2-video-llama3-chat,999.2852988494674,1000.7891635385968,cogvlm2 (other),THUDM,https://huggingface.co/THUDM/cogvlm2-video-llama3-chat
+LLaVA-NeXT-Video-7B,LLaVA-NeXT-Video-7B,942.7085371083751,936.054192212698,llama2,LLaVA-NeXT Team,https://huggingface.co/llava-hf/LLaVA-NeXT-Video-7B-hf
+VideoLLaMA2-7B,VideoLLaMA2-7B,939.3111682232095,918.3873601999269,Apache-2.0,DAMO-NLP-SG,https://huggingface.co/DAMO-NLP-SG/VideoLLaMA2-7B
+Video-LLaVA-7B,Video-LLaVA-7B,780.4322970462629,784.804346836765,Apache-2.0,Peking University,https://huggingface.co/LanguageBind/Video-LLaVA-7B

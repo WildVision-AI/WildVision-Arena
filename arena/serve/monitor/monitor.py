@@ -263,10 +263,11 @@ def get_arena_table(arena_df, model_table_df):
         row.append(f"+{upper_diff}/-{lower_diff}")
         # num battles
         row.append(round(arena_df.iloc[i]["num_battles"]))
-        # MMMU
-        row.append(
-            model_table_df[model_table_df["key"] == model_key]["MMMU"].values[0]
-        )
+        # MMMU or others
+        if "MMMU" in arena_df.columns:
+            row.append(
+                model_table_df[model_table_df["key"] == model_key]["MMMU"].values[0]
+            )
         # Organization
         row.append(
             model_table_df[model_table_df["key"] == model_key]["Organization"].values[0]
@@ -280,7 +281,7 @@ def get_arena_table(arena_df, model_table_df):
     return values
 
 
-def build_leaderboard_tab(elo_results_file, leaderboard_table_file, show_plot=False):
+def build_leaderboard_tab(elo_results_file, leaderboard_table_file, video_elo_results_file, video_leaderboard_table_file, show_plot=False):
     if elo_results_file is None:  # Do live update
         default_md = "Loading ..."
         p1 = p2 = p3 = p4 = None
@@ -297,88 +298,153 @@ def build_leaderboard_tab(elo_results_file, leaderboard_table_file, show_plot=Fa
         p3 = anony_elo_results["bootstrap_elo_rating"]
         p4 = anony_elo_results["average_win_rate_bar"]
         default_md = make_default_md(anony_arena_df, anony_elo_results)
+        
+    if video_elo_results_file is not None:
+        with open(video_elo_results_file, "rb") as fin:
+            video_elo_results = pickle.load(fin)
+
+        video_anony_elo_results = video_elo_results["anony"]
+        video_full_elo_results = video_elo_results["full"]
+        video_anony_arena_df = video_anony_elo_results["leaderboard_table_df"]
+        video_full_arena_df = video_full_elo_results["leaderboard_table_df"]
+        video_p1 = video_anony_elo_results["win_fraction_heatmap"]
+        video_p2 = video_anony_elo_results["battle_count_heatmap"]
+        video_p3 = video_anony_elo_results["bootstrap_elo_rating"]
+        video_p4 = video_anony_elo_results["average_win_rate_bar"]
+        default_md = make_default_md(video_anony_arena_df, video_anony_elo_results)
 
     md_1 = gr.Markdown(default_md, elem_id="leaderboard_markdown")
     if leaderboard_table_file:
         data = load_leaderboard_table_csv(leaderboard_table_file)
         model_table_df = pd.DataFrame(data)
+        video_data = load_leaderboard_table_csv(video_leaderboard_table_file)
+        video_model_table_df = pd.DataFrame(video_data)
 
         with gr.Tabs() as tabs:
-            # arena table
-            # arena_table_vals = get_arena_table(anony_arena_df, model_table_df)
-            full_table_vals = get_arena_table(full_arena_df, model_table_df)
-            # with gr.Tab("Full Leaderboard", id=0):
-            md = make_full_leaderboard_md(full_elo_results)
-            gr.Markdown(md, elem_id="leaderboard_markdown")
-            # full_table_vals = get_full_table(anony_arena_df, full_arena_df, model_table_df)
-            full_table_vals = get_arena_table(full_arena_df, model_table_df)
-            # full_table_vals[0] is [1, '<a target="_blank" href="https://openai.com/research/gpt-4" style="color: var(--link-text-color); text-decoration: underline;text-decoration-style: dotted;">gpt-4o</a>', 1230, '+28/-24', 563, 69.1, 'OpenAI', 'Proprietary']
-            # remove the last column 
-            full_table_vals = [v[:-1] for v in full_table_vals]
-            model_renaming = {
-                "MiniCPM-V": "MiniCPM-V-1.0",
-                "minicpm-llama3-v": "MiniCPM-Llama3-V-2.5"
-            }
-            # in 2nd column, replace the model name with the new name
-            for i in range(len(full_table_vals)):
-                for k, v in model_renaming.items():
-                    full_table_vals[i][1] = full_table_vals[i][1].replace(k, v)
-            #  add 🔒 emoji for each closed model cotaning key words (gpt, claude, reka)
-            for i in range(len(full_table_vals)):
-                if "gpt" in full_table_vals[i][1].lower() or "claude" in full_table_vals[i][1].lower() or \
-                        "reka" in full_table_vals[i][1].lower() or "gemini" in full_table_vals[i][1].lower() or \
-                        "yi-vl" in full_table_vals[i][1].lower():
-                    full_table_vals[i][1] = "🔒 " + full_table_vals[i][1]
-                else:
-                    full_table_vals[i][1] = "🔑 " + full_table_vals[i][1]
-
-            gr.Dataframe(
-                headers=[
-                    "Rank",
-                    "🤖 V-L Model",
-                    "⭐ WV-Arena Elo",
-                    "📊 95% CI",
-                    "🆚 Battles",
-                    "📚 MMMU",
-                    "🏫 Org",
-                    # "License",
-                ],
-                datatype=["number", "markdown", "number", "number", "number", "number", "str"],
-                value=full_table_vals,
-                elem_id="full_leaderboard_dataframe",
-                column_widths=[100, 250, 150, 150, 150, 100, 150],
-                height=1500,
-                wrap=True,
-            )
             
-            # with gr.Tab("Arena Elo (battle)", id=1):
-            #     md = make_arena_leaderboard_md(anony_elo_results)
-            #     gr.Markdown(md, elem_id="leaderboard_markdown")
-            #     gr.Dataframe(
-            #         headers=[
-            #             "Rank",
-            #             "🤖 Model",
-            #             "⭐ Arena Elo",
-            #             "📊 95% CI",
-            #             "⚔️ Battles",
-            #             "Organization",
-            #             "License",
-            #         ],
-            #         datatype=[
-            #             "str",
-            #             "markdown",
-            #             "number",
-            #             "str",
-            #             "number",
-            #             "str",
-            #             "str",
-            #         ],
-            #         value=arena_table_vals,
-            #         elem_id="arena_leaderboard_dataframe",
-            #         height=700,
-            #         column_widths=[50, 150, 100, 100, 100, 150, 150],
-            #         wrap=True,
-            #     )
+            with gr.Tab("Image-Arena Leaderboard", id=0):
+                
+                # arena table
+                # arena_table_vals = get_arena_table(anony_arena_df, model_table_df)
+                full_table_vals = get_arena_table(full_arena_df, model_table_df)
+                # with gr.Tab("Full Leaderboard", id=0):
+                md = make_full_leaderboard_md(full_elo_results)
+                gr.Markdown(md, elem_id="leaderboard_markdown")
+                # full_table_vals = get_full_table(anony_arena_df, full_arena_df, model_table_df)
+                full_table_vals = get_arena_table(full_arena_df, model_table_df)
+                # full_table_vals[0] is [1, '<a target="_blank" href="https://openai.com/research/gpt-4" style="color: var(--link-text-color); text-decoration: underline;text-decoration-style: dotted;">gpt-4o</a>', 1230, '+28/-24', 563, 69.1, 'OpenAI', 'Proprietary']
+                # remove the last column 
+                full_table_vals = [v[:-1] for v in full_table_vals]
+                model_renaming = {
+                    "MiniCPM-V": "MiniCPM-V-1.0",
+                    "minicpm-llama3-v": "MiniCPM-Llama3-V-2.5"
+                }
+                # in 2nd column, replace the model name with the new name
+                for i in range(len(full_table_vals)):
+                    for k, v in model_renaming.items():
+                        full_table_vals[i][1] = full_table_vals[i][1].replace(k, v)
+                #  add 🔒 emoji for each closed model cotaning key words (gpt, claude, reka)
+                for i in range(len(full_table_vals)):
+                    if "gpt" in full_table_vals[i][1].lower() or "claude" in full_table_vals[i][1].lower() or \
+                            "reka" in full_table_vals[i][1].lower() or "gemini" in full_table_vals[i][1].lower() or \
+                            "yi-vl" in full_table_vals[i][1].lower():
+                        full_table_vals[i][1] = "🔒 " + full_table_vals[i][1]
+                    else:
+                        full_table_vals[i][1] = "🔑 " + full_table_vals[i][1]
+
+                gr.Dataframe(
+                    headers=[
+                        "Rank",
+                        "🤖 V-L Model",
+                        "⭐ WV-Arena Elo",
+                        "📊 95% CI",
+                        "🆚 Battles",
+                        "📚 MMMU",
+                        "🏫 Org",
+                        # "License",
+                    ],
+                    datatype=["number", "markdown", "number", "number", "number", "number", "str"],
+                    value=full_table_vals,
+                    elem_id="full_leaderboard_dataframe",
+                    column_widths=[100, 250, 150, 150, 150, 100, 150],
+                    height=1500,
+                    wrap=True,
+                )
+                
+                # with gr.Tab("Arena Elo (battle)", id=1):
+                #     md = make_arena_leaderboard_md(anony_elo_results)
+                #     gr.Markdown(md, elem_id="leaderboard_markdown")
+                #     gr.Dataframe(
+                #         headers=[
+                #             "Rank",
+                #             "🤖 Model",
+                #             "⭐ Arena Elo",
+                #             "📊 95% CI",
+                #             "⚔️ Battles",
+                #             "Organization",
+                #             "License",
+                #         ],
+                #         datatype=[
+                #             "str",
+                #             "markdown",
+                #             "number",
+                #             "str",
+                #             "number",
+                #             "str",
+                #             "str",
+                #         ],
+                #         value=arena_table_vals,
+                #         elem_id="arena_leaderboard_dataframe",
+                #         height=700,
+                #         column_widths=[50, 150, 100, 100, 100, 150, 150],
+                #         wrap=True,
+                #     )
+                
+            with gr.Tab("Video-Arena Leaderboard", id=1):
+                # arena table
+                full_table_vals = get_arena_table(video_full_arena_df, video_model_table_df)
+                # with gr.Tab("Full Leaderboard", id=0):
+                md = make_full_leaderboard_md(video_full_elo_results)
+                gr.Markdown(md, elem_id="leaderboard_markdown")
+                full_table_vals = get_arena_table(video_full_arena_df, video_model_table_df)
+                # full_table_vals[0] is [1, '<a target="_blank" href="https://openai.com/research/gpt-4" style="color: var(--link-text-color); text-decoration: underline;text-decoration-style: dotted;">gpt-4o</a>', 1230, '+28/-24', 563, 69.1, 'OpenAI', 'Proprietary']
+                # remove the last column 
+                full_table_vals = [v[:-1] for v in full_table_vals]
+                model_renaming = {
+                    "MiniCPM-V": "MiniCPM-V-1.0",
+                    "minicpm-llama3-v": "MiniCPM-Llama3-V-2.5"
+                }
+                # in 2nd column, replace the model name with the new name
+                for i in range(len(full_table_vals)):
+                    for k, v in model_renaming.items():
+                        full_table_vals[i][1] = full_table_vals[i][1].replace(k, v)
+                #  add 🔒 emoji for each closed model cotaning key words (gpt, claude, reka)
+                for i in range(len(full_table_vals)):
+                    if "gpt" in full_table_vals[i][1].lower() or "claude" in full_table_vals[i][1].lower() or \
+                            "reka" in full_table_vals[i][1].lower() or "gemini" in full_table_vals[i][1].lower() or \
+                            "yi-vl" in full_table_vals[i][1].lower():
+                        full_table_vals[i][1] = "🔒 " + full_table_vals[i][1]
+                    else:
+                        full_table_vals[i][1] = "🔑 " + full_table_vals[i][1]
+                        
+                gr.Dataframe(
+                    headers=[
+                        "Rank",
+                        "🤖 V-L Model",
+                        "⭐ WV-Arena Elo",
+                        "📊 95% CI",
+                        "🆚 Battles",
+                        # "📚 MMMU",
+                        "🏫 Org",
+                        # "License",
+                    ],
+                    datatype=["number", "markdown", "number", "number", "number", "str"],
+                    value=full_table_vals,
+                    elem_id="full_leaderboard_dataframe",
+                    column_widths=[100, 250, 150, 150, 150, 100, 150],
+                    height=1500,
+                    wrap=True,
+                )
         if not show_plot:
             gr.Markdown(
                 """ ### We are still collecting more votes on more models. The ranking will be updated very fruquently. Please stay tuned! 
