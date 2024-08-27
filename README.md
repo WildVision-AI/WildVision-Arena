@@ -28,11 +28,10 @@ Navigate to Tab `Video Arena` or `Direct Chat` to chat with Video-LLaVA. You can
 
 ## Citation
 ```
-@misc{yujie2024wildvisionarena,
-    title={WildVision Arena: Benchmarking Multimodal LLMs in the Wild},
-    url={https://huggingface.co/spaces/WildVision/vision-arena/},
-    author={Lu, Yujie and Jiang, Dongfu and Chen, Wenhu and Wang, William and Choi, Yejin and Lin, Bill Yuchen},
-    month={February},
-    year={2024}
+@article{lu2024wildvision,
+  title={WildVision: Evaluating Vision-Language Models in the Wild with Human Preferences},
+  author={Lu, Yujie and Jiang, Dongfu and Chen, Wenhu and Wang, William Yang and Choi, Yejin and Lin, Bill Yuchen},
+  journal={arXiv preprint arXiv:2406.11069},
+  year={2024}
 }
 ```
