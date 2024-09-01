@@ -222,8 +222,8 @@ def build_demo(models, elo_results_file, leaderboard_table_file, video_elo_resul
                     build_leaderboard_tab(elo_results_file, leaderboard_table_file, video_elo_results_file, video_leaderboard_table_file)
             with gr.Tab("ℹ️ About Us", elem_id="arena-tab", id=5):
                 about = build_about()
-            # with gr.Tab("👀 Failure Case Examples", elem_id="arena-tab", id=6):
-            #     failure_cases = build_side_by_side_ui_failure_case()
+            with gr.Tab("👀 Failure Case Examples", elem_id="arena-tab", id=6):
+                failure_cases = build_side_by_side_ui_failure_case()
 
         url_params = gr.JSON(visible=False)
 
