@@ -50,7 +50,7 @@ from arena.utils import (
     get_window_url_params_with_tos_js,
     parse_gradio_auth_creds,
 )
-
+from arena.serve.gradio_block_arena_show_failures import build_side_by_side_ui_failure_case
 logger = build_logger("gradio_web_server_multi", "gradio_web_server_multi.log")
 
 from rich.console import Console
@@ -222,6 +222,8 @@ def build_demo(models, elo_results_file, leaderboard_table_file, video_elo_resul
                     build_leaderboard_tab(elo_results_file, leaderboard_table_file, video_elo_results_file, video_leaderboard_table_file)
             with gr.Tab("ℹ️ About Us", elem_id="arena-tab", id=5):
                 about = build_about()
+            # with gr.Tab("👀 Failure Case Examples", elem_id="arena-tab", id=6):
+            #     failure_cases = build_side_by_side_ui_failure_case()
 
         url_params = gr.JSON(visible=False)
 
