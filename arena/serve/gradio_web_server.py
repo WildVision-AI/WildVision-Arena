@@ -479,6 +479,7 @@ def model_worker_stream_iter(
     repetition_penalty,
     top_p,
     max_new_tokens,
+    frame_num,
 ):
     # Make requests
     # TODO: trans state
@@ -502,6 +503,7 @@ def model_worker_stream_iter(
             "stop": conv.stop_str,
             "stop_token_ids": conv.stop_token_ids,
             "echo": False,
+            "frame_num": frame_num,
         }
         input_text = gen_params["prompt"]["text"]
     elif isinstance(vision_input, torch.Tensor):
@@ -519,6 +521,7 @@ def model_worker_stream_iter(
             "stop": conv.stop_str,
             "stop_token_ids": conv.stop_token_ids,
             "echo": False,
+            "frame_num": frame_num,
         }
         input_text = gen_params["prompt"]["text"]
 
@@ -543,6 +546,7 @@ def model_worker_stream_iter(
             "stop": conv.stop_str,
             "stop_token_ids": conv.stop_token_ids,
             "echo": False,
+            "frame_num": frame_num,
         }
         input_text = gen_params["prompt"]["text"]
     elif type(vision_input) == bytes:
@@ -556,6 +560,7 @@ def model_worker_stream_iter(
             "stop": conv.stop_str,
             "stop_token_ids": conv.stop_token_ids,
             "echo": False,
+            "frame_num": frame_num,
         }
         input_text = gen_params["prompt"]["text"]
     else:
@@ -614,6 +619,7 @@ def bot_response(
     temperature,
     top_p,
     max_new_tokens,
+    frame_num,
     request: gr.Request,
     apply_rate_limit=True,
 ):
@@ -624,6 +630,7 @@ def bot_response(
     temperature = float(temperature)
     top_p = float(top_p)
     max_new_tokens = int(max_new_tokens)
+    frame_num = int(frame_num)
 
     USE_MM_CHATBOT = False
     chatbot_history = state.get_chatbot_history()
@@ -649,14 +656,14 @@ def bot_response(
         vision_input = conv.get_vision_input()
         prompt = conv.to_openai_api_messages()
         stream_iter = openai_api_stream_iter(
-            model_name, prompt, temperature, top_p, max_new_tokens, vision_input
+            model_name, prompt, temperature, top_p, max_new_tokens, frame_num, vision_input
         )
     elif model_name in [
         "gemini-pro-vision", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest",
     ]:
         vision_input = conv.get_vision_input()
         stream_iter = gemini_vision_api_stream_iter(
-            model_name, conv.messages[-2][1], temperature, top_p, max_new_tokens, vision_input
+            model_name, conv.messages[-2][1], temperature, top_p, max_new_tokens, frame_num, vision_input
         )
     elif model_name in [
         "idefics2-8b", "idefics2-8b-chatty",
@@ -714,6 +721,7 @@ def bot_response(
             temperature,
             top_p,
             max_new_tokens,
+            frame_num,
             api_base=model_info["api_base"],
             api_key=model_info["api_key"],
         )
@@ -731,7 +739,7 @@ def bot_response(
         assert model_name not in openai_compatible_models_info
         prompt = conv.to_openai_api_messages()
         stream_iter = openai_api_stream_iter(
-            model_name, prompt, temperature, top_p, max_new_tokens
+            model_name, prompt, temperature, top_p, max_new_tokens, frame_num
         )
     elif model_name in ANTHROPIC_MODEL_LIST:
         prompt = conv.get_prompt()
@@ -804,6 +812,7 @@ def bot_response(
             repetition_penalty,
             top_p,
             max_new_tokens,
+            frame_num,
         )
 
     conv.update_last_message("▌")
@@ -965,6 +974,7 @@ def bot_response(
                 "temperature": temperature,
                 "top_p": top_p,
                 "max_new_tokens": max_new_tokens,
+                "frame_num": frame_num,
             },
             "start": round(start_tstamp, 4),
             "finish": round(finish_tstamp, 4),
@@ -1160,6 +1170,14 @@ def build_single_model_ui(models, add_promotion_links=False):
             interactive=True,
             label="Max output tokens",
         )
+        frame_num = gr.Slider(
+            minimum=1,
+            maximum=32,
+            value=8,
+            step=1,
+            interactive=True,
+            label="Frame sampling num",
+        )
     with gr.Row():
         # gr.Examples(
         #     examples=[
@@ -1197,7 +1215,7 @@ def build_single_model_ui(models, add_promotion_links=False):
     )
     regenerate_btn.click(regenerate, state, [state, chatbot, textbox] + btn_list + [reason_textbox]).then(
         bot_response,
-        [state, temperature, top_p, max_output_tokens],
+        [state, temperature, top_p, max_output_tokens, frame_num],
         [state, chatbot] + btn_list + [reason_textbox],
     )
     clear_btn.click(clear_history, None, [state, chatbot, textbox, imagebox] + btn_list + [reason_textbox])
@@ -1209,7 +1227,7 @@ def build_single_model_ui(models, add_promotion_links=False):
         add_text, [state, model_selector, textbox, imagebox], [state, chatbot, textbox] + btn_list + [reason_textbox]
     ).then(
         bot_response,
-        [state, temperature, top_p, max_output_tokens],
+        [state, temperature, top_p, max_output_tokens, frame_num],
         [state, chatbot] + btn_list + [reason_textbox],
     )
     send_btn.click(
@@ -1218,7 +1236,7 @@ def build_single_model_ui(models, add_promotion_links=False):
         [state, chatbot, textbox] + btn_list + [reason_textbox],
     ).then(
         bot_response,
-        [state, temperature, top_p, max_output_tokens],
+        [state, temperature, top_p, max_output_tokens, frame_num],
         [state, chatbot] + btn_list + [reason_textbox],
     )
 
@@ -1474,6 +1492,14 @@ def build_single_model_chatbot(models, add_promotion_links=False):
             interactive=True,
             label="Max output tokens",
         )
+        frame_num = gr.Slider(
+            minimum=1,
+            maximum=32,
+            value=8,
+            step=1,
+            interactive=True,
+            label="Frame sampling num",
+        )
     with gr.Row():
         gr.Examples(examples=[
             [{"files": ["examples/messi.mp4"], "text": "Describe the video in one sentence."}],
@@ -1507,7 +1533,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
     )
     regenerate_btn.click(regenerate_chatbot, state, [state, chatbot, chat_input] + btn_list + [reason_textbox]).then(
         bot_response,
-        [state, temperature, top_p, max_output_tokens],
+        [state, temperature, top_p, max_output_tokens, frame_num],
         [state, chatbot] + btn_list + [reason_textbox],
     )
     clear_btn.click(clear_history_chatbot, None, [state, chatbot, chat_input, chat_input] + btn_list + [reason_textbox])
@@ -1519,7 +1545,7 @@ def build_single_model_chatbot(models, add_promotion_links=False):
         add_input_chatbot, [state, model_selector, chatbot, chat_input], [state, chatbot, chat_input] + btn_list + [reason_textbox]
     ).then(
         bot_response,
-        [state, temperature, top_p, max_output_tokens],
+        [state, temperature, top_p, max_output_tokens, frame_num],
         [state, chatbot] + btn_list + [reason_textbox],
     ).then(
         lambda: gr.MultimodalTextbox(interactive=True, value=None),

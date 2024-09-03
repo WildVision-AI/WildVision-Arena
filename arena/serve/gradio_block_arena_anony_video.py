@@ -380,6 +380,7 @@ def bot_response_multi(
     temperature,
     top_p,
     max_new_tokens,
+    frame_num,
     request: gr.Request,
 ):
     logger.info(f"bot_response_multi (anony). ip: {get_ip(request)}")
@@ -412,6 +413,7 @@ def bot_response_multi(
                 temperature,
                 top_p,
                 max_new_tokens,
+                frame_num,
                 request,
                 apply_rate_limit=False,
             )
@@ -592,6 +594,14 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
             interactive=True,
             label="Max output tokens",
         )
+        frame_num = gr.Slider(
+            minimum=1,
+            maximum=32,
+            value=8,
+            step=1,
+            interactive=True,
+            label="Frame sampling num",
+        )
     gr.Markdown(sample_markdown, elem_id="sample_markdown")
     gr.Examples(examples=[
         ["examples/messi.mp4", "Describe the video in one sentence."], 
@@ -636,7 +646,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         regenerate, states, states + chatbots + [textbox] + btn_list + [reason_textbox]
     ).then(
         bot_response_multi,
-        states + [temperature, top_p, max_output_tokens],
+        states + [temperature, top_p, max_output_tokens, frame_num],
         states + chatbots + btn_list + [reason_textbox],
     ).then(
         flash_buttons, [], btn_list + [reason_textbox]
@@ -679,7 +689,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         states + chatbots + [textbox] + btn_list + [reason_textbox] + [slow_warning],
     ).then(
         bot_response_multi,
-        states + [temperature, top_p, max_output_tokens],
+        states + [temperature, top_p, max_output_tokens, frame_num],
         states + chatbots + btn_list + [reason_textbox],
     ).then(
         flash_buttons,
@@ -693,7 +703,7 @@ The **Sample Input** button aims to give you a randomly sampled example from exi
         states + chatbots + [textbox] + btn_list + [reason_textbox],
     ).then(
         bot_response_multi,
-        states + [temperature, top_p, max_output_tokens],
+        states + [temperature, top_p, max_output_tokens, frame_num],
         states + chatbots + btn_list + [reason_textbox],
     ).then(
         flash_buttons, [], btn_list + [reason_textbox]

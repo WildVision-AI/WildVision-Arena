@@ -33,7 +33,7 @@ def convert_pil_to_base64(image):
     return img_str.decode('utf-8')
 
 
-def get_vision_input(vision_input):
+def get_vision_input(vision_input, frame_num=8):
     if isinstance(vision_input, Image.Image):
         return [vision_input]
     elif isinstance(vision_input, torch.Tensor):
@@ -55,10 +55,9 @@ def get_vision_input(vision_input):
         cap = cv2.VideoCapture(temp_file)
         
         image_list = []
-        num_frames = 8 # Default sampling 8 frames
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        sample_interval = total_frames // num_frames
-        for i in range(num_frames):
+        sample_interval = total_frames // frame_num
+        for i in range(frame_num):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * sample_interval)
             ret, frame = cap.read()
             if ret:
@@ -84,7 +83,8 @@ def generate(model_name, gen_params, vision_input, messages, is_yivl_api=False):
     input_messages = messages
     # FIXME: support various images in history; similar to what we did in reka messages
     if vision_input is not None:
-        image_list = get_vision_input(vision_input)
+        image_list = get_vision_input(vision_input, gen_params.get("frame_num"))
+        print(len(image_list))
         # text_message = input_messages[1]["content"]
         text_message = input_messages[-1]["content"]
         # input_messages[1]["content"] = [
@@ -282,7 +282,7 @@ def init_palm_chat(model_name):
     return chat
 
 
-def gemini_vision_api_stream_iter(model_name, message, temperature, top_p, max_new_tokens, vision_input):
+def gemini_vision_api_stream_iter(model_name, message, temperature, top_p, max_new_tokens, frame_num, vision_input):
     import google.generativeai as genai
 
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
@@ -292,7 +292,7 @@ def gemini_vision_api_stream_iter(model_name, message, temperature, top_p, max_n
     # no streaming version
     # response = model.generate_content([message, image])
     content = [message, ]
-    image_list = get_vision_input(vision_input)
+    image_list = get_vision_input(vision_input, frame_num)
     for image_pil in image_list:
         content.append(image_pil)
 
