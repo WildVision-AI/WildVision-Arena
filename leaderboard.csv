@@ -1,34 +1,34 @@
 key,Model,Arena Elo rating (anony),Arena Elo rating (full),MMMU,License,Organization,Link
-gpt-4o,gpt-4o,1209.883461632522,1217.508713298787,69.1,Proprietary,OpenAI,https://openai.com/research/gpt-4
-claude-3-5-sonnet-20240620,claude-3-5-sonnet-20240620,1158.8430198477029,1168.6298019526141,-,-,Anthropic,https://www.anthropic.com/claude
-gpt-4-turbo,gpt-4-turbo,1154.9892207086953,1124.9676110096402,62.3,Proprietary,OpenAI,https://openai.com/research/gpt-4
-gemini-1.5-pro-latest,gemini-1.5-pro-latest,1124.9489939515393,1120.3563745233407,62.2,Proprietary,Google,https://gemini.google.com/app
-gpt-4o-mini-2024-07-18,gpt-4o-mini-2024-07-18,1110.838818724063,1142.5302465169211,59.4,Proprietary,OpenAI,https://openai.com/research/gpt-4
-gpt-4-vision-preview,gpt-4-vision-preview,1095.6790879404243,1103.2825249743084,56.8,Proprietary,OpenAI,https://openai.com/research/gpt-4
-phi-3-vision-128k-instruct,phi-3-vision-128k-instruct,1080.730955612197,1011.1303988856954,40.4,MIT,Microsoft,https://huggingface.co/microsoft/Phi-3-vision-128k-instruct
-Reka-Flash,Reka-Flash,1071.6874740831443,1072.4816639668434,53.3,-,Reka AI,https://reka.ai/reka-flash-an-efficient-and-capable-multimodal-language-model/
-claude-3-opus,claude-3-opus,1063.5020975586144,1071.4962120710932,59.4,-,Anthropic,https://www.anthropic.com/claude
-gemini-1.5-flash-latest,gemini-1.5-flash-latest,1062.3063789299335,1083.479301757658,56.1,Proprietary,Google,https://gemini.google.com/app
-qwen-vl-max,qwen-vl-max,1048.8888160744507,1051.2489953716804,51.4,Tongyi Qianwen LICENSE,Alibaba,https://huggingface.co/spaces/Qwen/Qwen-VL-Plus
-llava-v1.6-mistral-7b,llava-v1.6-mistral-7b,1044.28018982017,930.5092447771708,-,Apache-2.0,UW Madison,https://huggingface.co/llava-hf/llava-v1.6-mistral-7b-hf
-yi-vl-plus,yi-vl-plus,1043.249228064449,1052.2850923550557,-,-,01 AI,https://platform.lingyiwanwu.com/
-gemini-pro-vision,gemini-pro-vision,1025.8987257906822,1037.4681617023202,47.9,Proprietary,Google,https://gemini.google.com/app
-Reka-Core,Reka-Core,1023.3027008469234,1029.902567016549,56.3,-,Reka AI,https://www.reka.ai/news/reka-core-our-frontier-class-multimodal-language-model
-llava-v1.6-34b,llava-v1.6-34b,1021.8146965730131,1029.731169512014,51.1,Apache-2.0,UW Madison,https://huggingface.co/liuhaotian/llava-v1.6-34b
-claude-3-sonnet,claude-3-sonnet,1016.1944167182793,1022.9198937875719,53.1,-,Anthropic,https://www.anthropic.com/claude
-qwen-vl-plus,qwen-vl-plus,996.7063782336769,1011.4588787794478,45.2,Tongyi Qianwen LICENSE,Alibaba,https://huggingface.co/spaces/Qwen/Qwen-VL-Max
-minicpm-llama3-v,minicpm-llama3-v,992.159555829365,999.6136076822903,45.8,Apache-2.0,OpenBMB,https://huggingface.co/openbmb/MiniCPM-Llama3-V-2_5
-claude-3-haiku,claude-3-haiku,987.0086163758914,995.3940373107539,50.2,-,Anthropic,https://www.anthropic.com/claude
-cogvlm-chat-hf,cogvlm-chat-hf,981.7167787361059,986.914415027117,32.1,Apache-2.0,Tsinghua Univ.,https://huggingface.co/THUDM/cogvlm-chat-hf
-deepseek-vl-7b-chat,deepseek-vl-7b-chat,951.8830219398848,957.2945606791341,36.6,-,DeepSeek,https://huggingface.co/deepseek-ai/deepseek-vl-7b-chat
-llava-v1.6-vicuna-7b,llava-v1.6-vicuna-7b,947.9626287261863,956.637120979766,35.1,LLAMA 2 Community License,UW Madison,https://huggingface.co/liuhaotian/llava-v1.6-vicuna-7b
-idefics2-8b-chatty,idefics2-8b-chatty,942.9400905960937,949.1696045586016,43.0,Apache-2.0,Hugging Face,https://huggingface.co/HuggingFaceM4/idefics2-8b-chatty
-llava-next-72b,llava-next-72b,934.108031482865,883.268518026465,52.1,Tongyi Qianwen LICENSE,LLaVA-NeXT Team,https://huggingface.co/llava-hf/llava-next-72b-hf
-llava-v1.6-vicuna-13b,llava-v1.6-vicuna-13b,906.2198992829443,925.3767267046671,35.9,LLAMA 2 Community License,UW Madison,https://huggingface.co/liuhaotian/llava-v1.6-vicuna-13b
-Qwen-VL-Chat,Qwen-VL-Chat,894.5043260115593,905.317916964974,35.9,Tongyi Qianwen LICENSE,Alibaba,https://huggingface.co/Qwen/Qwen-VL-Chat
-Bunny-v1_0-3B,Bunny-v1_0-3B,891.5585001251136,907.681213888338,38.2,-,BAAI,https://huggingface.co/BAAI/Bunny-v1_0-3B
-MiniCPM-V,MiniCPM-V,876.0252287006093,885.3969253079306,34.7,Apache-2.0,OpenBMB,https://huggingface.co/openbmb/MiniCPM-V
-llava-v1.5-13b,llava-v1.5-13b,858.9285825695484,863.4702028359204,36.4,Apache-2.0,UW Madison,https://huggingface.co/liuhaotian/llava-v1.5-13b
-tiny-llava-v1-hf,tiny-llava-v1-hf,849.9662210578217,858.8416641836747,33.1,Apache-2.0,Beihang University,https://huggingface.co/bczhou/tiny-llava-v1-hf
-instructblip-vicuna-7b,instructblip-vicuna-7b,827.4920115800192,835.3630415270741,-,-,Salesforce,https://huggingface.co/Salesforce/instructblip-vicuna-7b
-uform-gen2-qwen-500m,uform-gen2-qwen-500m,805.9744825610712,816.2635955877932,-,-,Unum,https://huggingface.co/unum-cloud/uform-gen2-qwen-500m
+gpt-4o,gpt-4o,1208.4184955188607,1213.7269777330362,69.1,Proprietary,OpenAI,https://openai.com/research/gpt-4
+claude-3-5-sonnet-20240620,claude-3-5-sonnet-20240620,1163.871641880102,1173.5484667316346,-,-,Anthropic,https://www.anthropic.com/claude
+gpt-4-turbo,gpt-4-turbo,1155.411371556378,1126.842972095157,62.3,Proprietary,OpenAI,https://openai.com/research/gpt-4
+gemini-1.5-pro-latest,gemini-1.5-pro-latest,1127.3906687692997,1121.5029830242192,62.2,Proprietary,Google,https://gemini.google.com/app
+gpt-4o-mini-2024-07-18,gpt-4o-mini-2024-07-18,1117.8940581456231,1144.5495779232167,59.4,Proprietary,OpenAI,https://openai.com/research/gpt-4
+gpt-4-vision-preview,gpt-4-vision-preview,1096.7887264265576,1102.781327499789,56.8,Proprietary,OpenAI,https://openai.com/research/gpt-4
+Reka-Flash,Reka-Flash,1073.44846250255,1072.2190621231189,53.3,-,Reka AI,https://reka.ai/reka-flash-an-efficient-and-capable-multimodal-language-model/
+gemini-1.5-flash-latest,gemini-1.5-flash-latest,1066.1568315628717,1084.7484519596424,56.1,Proprietary,Google,https://gemini.google.com/app
+claude-3-opus,claude-3-opus,1065.7511184370878,1071.62083503544,59.4,-,Anthropic,https://www.anthropic.com/claude
+qwen-vl-max,qwen-vl-max,1047.5713935281972,1051.1925056401744,51.4,Tongyi Qianwen LICENSE,Alibaba,https://huggingface.co/spaces/Qwen/Qwen-VL-Plus
+yi-vl-plus,yi-vl-plus,1045.51402448534,1051.5073044592393,-,-,01 AI,https://platform.lingyiwanwu.com/
+llava-v1.6-mistral-7b,llava-v1.6-mistral-7b,1029.2097919527655,934.235622529957,-,Apache-2.0,UW Madison,https://huggingface.co/llava-hf/llava-v1.6-mistral-7b-hf
+gemini-pro-vision,gemini-pro-vision,1027.3243923090208,1036.94867491026,47.9,Proprietary,Google,https://gemini.google.com/app
+Reka-Core,Reka-Core,1025.7592693433633,1030.6196388699261,56.3,-,Reka AI,https://www.reka.ai/news/reka-core-our-frontier-class-multimodal-language-model
+llava-v1.6-34b,llava-v1.6-34b,1023.2934338734746,1029.3118725487413,51.1,Apache-2.0,UW Madison,https://huggingface.co/liuhaotian/llava-v1.6-34b
+claude-3-sonnet,claude-3-sonnet,1016.6491711024478,1022.8418666921667,53.1,-,Anthropic,https://www.anthropic.com/claude
+phi-3-vision-128k-instruct,phi-3-vision-128k-instruct,1015.4163753722784,991.6787271517594,40.4,MIT,Microsoft,https://huggingface.co/microsoft/Phi-3-vision-128k-instruct
+minicpm-llama3-v,minicpm-llama3-v,998.7305653242089,1002.8972996818994,45.8,Apache-2.0,OpenBMB,https://huggingface.co/openbmb/MiniCPM-Llama3-V-2_5
+qwen-vl-plus,qwen-vl-plus,997.035447970762,1013.129915888163,45.2,Tongyi Qianwen LICENSE,Alibaba,https://huggingface.co/spaces/Qwen/Qwen-VL-Max
+claude-3-haiku,claude-3-haiku,987.7861697770076,995.8408173780515,50.2,-,Anthropic,https://www.anthropic.com/claude
+cogvlm-chat-hf,cogvlm-chat-hf,983.2647793670003,986.6486192858413,32.1,Apache-2.0,Tsinghua Univ.,https://huggingface.co/THUDM/cogvlm-chat-hf
+llava-next-72b,llava-next-72b,958.8584645926172,888.9127658801166,52.1,Tongyi Qianwen LICENSE,LLaVA-NeXT Team,https://huggingface.co/llava-hf/llava-next-72b-hf
+deepseek-vl-7b-chat,deepseek-vl-7b-chat,953.5845264364174,957.2442249873645,36.6,-,DeepSeek,https://huggingface.co/deepseek-ai/deepseek-vl-7b-chat
+llava-v1.6-vicuna-7b,llava-v1.6-vicuna-7b,949.415176689439,956.1073910096256,35.1,LLAMA 2 Community License,UW Madison,https://huggingface.co/liuhaotian/llava-v1.6-vicuna-7b
+idefics2-8b-chatty,idefics2-8b-chatty,944.9270525091899,949.3632750497324,43.0,Apache-2.0,Hugging Face,https://huggingface.co/HuggingFaceM4/idefics2-8b-chatty
+llava-v1.6-vicuna-13b,llava-v1.6-vicuna-13b,906.2592417902806,925.7169745164905,35.9,LLAMA 2 Community License,UW Madison,https://huggingface.co/liuhaotian/llava-v1.6-vicuna-13b
+Qwen-VL-Chat,Qwen-VL-Chat,896.0719791286451,905.1948147664862,35.9,Tongyi Qianwen LICENSE,Alibaba,https://huggingface.co/Qwen/Qwen-VL-Chat
+Bunny-v1_0-3B,Bunny-v1_0-3B,893.3058909156039,907.4042309211356,38.2,-,BAAI,https://huggingface.co/BAAI/Bunny-v1_0-3B
+MiniCPM-V,MiniCPM-V,877.5370688982077,885.2396239894288,34.7,Apache-2.0,OpenBMB,https://huggingface.co/openbmb/MiniCPM-V
+llava-v1.5-13b,llava-v1.5-13b,859.7530527210507,862.8462291128614,36.4,Apache-2.0,UW Madison,https://huggingface.co/liuhaotian/llava-v1.5-13b
+tiny-llava-v1-hf,tiny-llava-v1-hf,851.6700951239351,859.4602327185169,33.1,Apache-2.0,Beihang University,https://huggingface.co/bczhou/tiny-llava-v1-hf
+instructblip-vicuna-7b,instructblip-vicuna-7b,829.0056792640772,835.0573218449815,-,-,Salesforce,https://huggingface.co/Salesforce/instructblip-vicuna-7b
+uform-gen2-qwen-500m,uform-gen2-qwen-500m,807.7475566849471,815.9535775359253,-,-,Unum,https://huggingface.co/unum-cloud/uform-gen2-qwen-500m

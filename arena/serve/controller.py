@@ -94,10 +94,10 @@ class Controller:
             time.time(),
         )
         model_type = worker_status.get("info", {}).get("type")
-        if model_type == "video" or any([model_name in VIDEO_MODEL_LIST for model_name in worker_status["model_names"]]):
+        if any([model_name in VIDEO_MODEL_LIST for model_name in worker_status["model_names"]]):
             self.worker_info[worker_name].model_type = "video"
         else:
-            self.worker_info[worker_name].model_type = "image"
+            self.worker_info[worker_name].model_type = model_type or "image"
 
         logger.info(f"Register done: {worker_name}, {worker_status}")
         return True
@@ -140,7 +140,8 @@ class Controller:
         model_names = set()
         self.refresh_all_workers()
         for w_name, w_info in self.worker_info.items():
-            if w_info.model_type == "image":
+            # if w_info.model_type == "image":
+            if "image" in w_info.model_type:
                 model_names.update(w_info.model_names)
         return list(model_names)
     
@@ -148,7 +149,8 @@ class Controller:
         model_names = set()
         self.refresh_all_workers()
         for w_name, w_info in self.worker_info.items():
-            if w_info.model_type == "video":
+            # if w_info.model_type == "video":
+            if "video" in w_info.model_type:
                 model_names.update(w_info.model_names)
         return list(model_names)
 

@@ -16,7 +16,8 @@ pip3 install -e ".[model_worker,vision_arena,webui,api,video_arena,dev]"
 pip3 install gradio==4.37.2
 pip3 install gradio_client==1.0.2
 # pip3 install transformers==4.34.0
-
+pip install dashscope reka-api text-generation google-cloud-aiplatform 
+pip install pytorchvideo
 ```
 
 ### Model-specific Environment
