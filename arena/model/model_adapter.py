@@ -57,7 +57,8 @@ OPENAI_MODEL_LIST = (
     "gpt-4-turbo",
     "gpt-4-vision-preview",
     "gpt-4o",
-    "gpt-4o-2024-05-13"
+    "gpt-4o-2024-05-13",
+    "gpt-4o-mini"
 )
 
 LLAVA_API_MODEL_LIST = (

@@ -651,7 +651,7 @@ def bot_response(
     ic(model_name)
     image = conv.get_vision_input()
     if model_name in [
-        "gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo", "gpt-4o-2024-05-13"
+        "gpt-4-vision-preview", "gpt-4o", "gpt-4-turbo", "gpt-4o-2024-05-13", "gpt-4o-mini"
     ]:
         vision_input = conv.get_vision_input()
         prompt = conv.to_openai_api_messages()
@@ -707,8 +707,8 @@ def bot_response(
         # TODO: double check reka template and history
         # TODO: add reka conversation history: https://docs.reka.ai/guides/002-image-video-audio-chat.html
         
-        if model_name == "Reka-Flash":
-            model_name = "creeping-phlox-20240403" # For WildVision Arena use
+        # if model_name == "Reka-Flash":
+        #     model_name = "creeping-phlox-20240403" # For WildVision Arena use
         stream_iter = reka_api_stream_iter(
             model_name, conv, temperature, top_p, max_new_tokens, image
         )

@@ -121,6 +121,7 @@ def openai_api_stream_iter(
     temperature,
     top_p,
     max_new_tokens,
+    frame_num=None,
     vision_input=None,
     api_base=None,
     api_key=None,
@@ -510,7 +511,6 @@ def yivl_api_stream_iter(model_name, messages, temperature, top_p, max_new_token
         "max_new_tokens": max_new_tokens,
     }
     completion = generate(model_name, gen_params, image, messages, is_yivl_api=True)
-                
     text = ""
     for chunk in completion:
         text += chunk.choices[0].delta.content or ""
@@ -567,88 +567,93 @@ def llava_api_stream_iter(model_name, messages, temperature, top_p, max_new_toke
         }
         yield data
 
-def reka_api_stream_iter(model_name, conv, temperature, top_p, max_new_tokens, image):
-    import reka
+# def reka_api_stream_iter(model_name, conv, temperature, top_p, max_new_tokens, image):
+#     import reka
 
-    media_url = https_image_service(image)
+#     media_url = https_image_service(image)
 
-    conv.set_media_url(media_url)
-    conv.set_media_type("image")
-    prompt = conv.to_reka_api_messages()
+#     conv.set_media_url(media_url)
+#     conv.set_media_type("image")
+#     prompt = conv.to_reka_api_messages()
 
-    gen_params = {
-        "model": model_name,
-        "prompt": prompt,
-        "temperature": temperature,
-        "top_p": top_p,
-        "max_new_tokens": max_new_tokens,
-    }
-    if len(prompt) <= 2:
-        response = reka.chat(
-            prompt[-2]["text"],
-            media_url=media_url,
-            media_type="image",
-            request_output_len=gen_params["max_new_tokens"],
-            temperature=gen_params["temperature"],
-            # runtime_top_k=1024,
-            runtime_top_p=gen_params["top_p"],
-        )
-    else:
-        # support mult-turn Reka
-        response = reka.chat(
-            prompt[-2]["text"],
-            conversation_history=prompt[:-2],
-            request_output_len=gen_params["max_new_tokens"],
-            temperature=gen_params["temperature"],
-            # runtime_top_k=1024,
-            runtime_top_p=gen_params["top_p"],
-        )
+#     gen_params = {
+#         "model": model_name,
+#         "prompt": prompt,
+#         "temperature": temperature,
+#         "top_p": top_p,
+#         "max_new_tokens": max_new_tokens,
+#     }
+#     if len(prompt) <= 2:
+#         response = reka.chat(
+#             prompt[-2]["text"],
+#             media_url=media_url,
+#             media_type="image",
+#             request_output_len=gen_params["max_new_tokens"],
+#             temperature=gen_params["temperature"],
+#             # runtime_top_k=1024,
+#             runtime_top_p=gen_params["top_p"],
+#         )
+#     else:
+#         # support mult-turn Reka
+#         response = reka.chat(
+#             prompt[-2]["text"],
+#             conversation_history=prompt[:-2],
+#             request_output_len=gen_params["max_new_tokens"],
+#             temperature=gen_params["temperature"],
+#             # runtime_top_k=1024,
+#             runtime_top_p=gen_params["top_p"],
+#         )
 
-    data = {
-        "text": response["text"],
-        "error_code": 0,
-    }
-    yield data
+#     data = {
+#         "text": response["text"],
+#         "error_code": 0,
+#     }
+#     yield data
     
+
+# from reka import ChatMessage
+# from reka.client import Reka
+# client = Reka()
+# response = client.chat.create(
+#     messages=[
+#         ChatMessage(
+#             content=[
+#                 {"type": "image_url", "image_url": "https://v0.docs.reka.ai/_images/000000245576.jpg"},
+#                 {"type": "text", "text": "What animal is this? Answer briefly"}
+#             ],
+#             role="user",
+#         )
+#     ],
+#     model="reka-core-20240501",
+# )
+# print(response.responses[0].message.content)
+
 def reka_api_stream_iter(model_name, conv, temperature, top_p, max_new_tokens, image):
-    import reka
+    from reka import ChatMessage
+    from reka.client import Reka
 
     media_url = https_image_service(image)
 
     conv.set_media_url(media_url)
     conv.set_media_type("image")
-    prompt = conv.to_reka_api_messages()
+    messages = conv.to_reka_api_messages_v2()
 
-    gen_params = {
-        "model": model_name,
-        "prompt": prompt,
-        "temperature": temperature,
-        "top_p": top_p,
-        "max_new_tokens": max_new_tokens,
-    }
-    if len(prompt) <= 2:
-        response = reka.chat(
-            prompt[-2]["text"],
-            media_url=media_url,
-            media_type="image",
-            request_output_len=gen_params["max_new_tokens"],
-            temperature=gen_params["temperature"],
-            # runtime_top_k=1024,
-            runtime_top_p=gen_params["top_p"],
-        )
-    else:
-        # support mult-turn Reka
-        response = reka.chat(
-            prompt[-2]["text"],
-            conversation_history=prompt[:-2],
-            request_output_len=gen_params["max_new_tokens"],
-            temperature=gen_params["temperature"],
-            # runtime_top_k=1024,
-            runtime_top_p=gen_params["top_p"],
-        )
-
+    client = Reka()
+    print(messages)
+    print(model_name)
+    response = client.chat.create(
+        messages=messages,
+        model=model_name.lower(),
+        max_tokens=max_new_tokens,
+        temperature=temperature,
+        top_p=top_p,
+    )
+    # for chunk in response:
+    # print(chunk.responses[0].chunk.content)
+    text = ""
+    text += response.responses[0].message.content
     data = {
-        "text": response["text"],
+        "text": text,
         "error_code": 0,
     }
     yield data

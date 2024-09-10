@@ -421,6 +421,41 @@ class Conversation:
                 if msg is not None:
                     ret.append({"type": "model", "text": msg})
         return ret
+    
+    def to_reka_api_messages_v2(self):
+        """Convert the conversation to Reka chat completion format."""
+        # from reka import ChatMessage
+        # from reka.client import Reka
+        # client = Reka()
+        # response = client.chat.create(
+        # messages=[
+        #     ChatMessage(
+        #         content=[
+        #             {"type": "image_url", "image_url": "https://v0.docs.reka.ai/_images/000000245576.jpg"},
+        #             {"type": "text", "text": "What animal is this? Answer briefly"}
+        #         ],
+        #         role="user",
+        #     )
+        # ],
+        # model="reka-core-20240501",
+        # )
+        from reka import ChatMessage
+        ret = []
+        for i, (_, msg) in enumerate(self.messages[self.offset :]):
+            if i == 0:
+                ret.append(ChatMessage(content=[{"type": "image_url", "image_url": self.media_url}, {"type": "text", "text": msg}], role="user"))
+            elif i % 2 == 0:
+                ret.append(ChatMessage(content=[{"type": "text", "text": msg}], role="user"))
+            elif i % 2 == 1:
+                if msg and msg.strip():
+                    ret.append(ChatMessage(content=[{"type": "text", "text": msg}], role="assistant"))
+            else:
+                if msg and msg.strip():
+                    ret.append(ChatMessage(content=[{"type": "text", "text": msg}], role="assistant"))
+        if ret[-1].role == "assistant":
+            # remove the last assistant message if it is empty
+            ret.pop()
+        return ret
 
     def to_minicpm_messages(self):
         # from icecream import ic

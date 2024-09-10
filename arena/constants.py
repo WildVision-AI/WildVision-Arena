@@ -300,8 +300,7 @@ OUTAGE_MODELS = ["llava-v1.6-vicuna-13b"]
 #     "solar-10.7b-instruct-v1.0",
 # ]
 
-# DOWNLOAD_DATASET = os.getenv("DOWNLOAD_DATASET", "VISITBENCH,TOUCHSTONE")
-DOWNLOAD_DATASET = os.getenv("DOWNLOAD_DATASET", "NA")
+DOWNLOAD_DATASET = os.getenv("DOWNLOAD_DATASET", "VISITBENCH,TOUCHSTONE")
 from datasets import load_dataset, concatenate_datasets
 # subset_category = random.choice(['Accounting', 'Agriculture', 'Architecture_and_Engineering', 'Art', 'Art_Theory', 'Basic_Medical_Science', 'Biology', 'Chemistry', 'Clinical_Medicine', 'Computer_Science', 'Design', 'Diagnostics_and_Laboratory_Medicine', 'Economics', 'Electronics', 'Energy_and_Power', 'Finance', 'Geography', 'History', 'Literature', 'Manage', 'Marketing', 'Materials', 'Math', 'Mechanical_Engineering', 'Music', 'Pharmacy', 'Physics', 'Psychology', 'Public_Health', 'Sociology'])
 # mmmu_datasets = load_dataset("MMMU/MMMU", subset_category, split="validation")

@@ -71,7 +71,7 @@ python3 -m arena.serve.model_worker --model-path gpt-4-vision-preview --controll
 python3 -m arena.serve.model_worker --model-path claude-3-opus-20240229 --controller http://127.0.0.1:8888 --port 31016 --worker http://127.0.0.1:31016 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-sonnet-20240229 --controller http://127.0.0.1:8888 --port 31019 --worker http://127.0.0.1:31019 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-haiku-20240307 --controller http://127.0.0.1:8888 --port 31020 --worker http://127.0.0.1:31020 --host=127.0.0.1 &
-python3 -m arena.serve.model_worker --model-path yi-vl-plus --controller http://127.0.0.1:8888 --port 31021 --worker http://127.0.0.1:31021 --host=127.0.0.1 &
+# python3 -m arena.serve.model_worker --model-path yi-vl-plus --controller http://127.0.0.1:8888 --port 31021 --worker http://127.0.0.1:31021 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path Reka-Flash --controller http://127.0.0.1:8888 --port 31022 --worker http://127.0.0.1:31022 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path idefics2-8b-chatty --controller http://127.0.0.1:8888 --port 31023 --worker http://127.0.0.1:31023 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gpt-4o --controller http://127.0.0.1:8888 --port 31024 --worker http://127.0.0.1:31024 --host=127.0.0.1 &
@@ -82,12 +82,12 @@ python3 -m arena.serve.model_worker --model-path Reka-Core --controller http://1
 # python3 -m arena.serve.model_worker --model-path qwen-vl-plus --controller http://127.0.0.1:8888 --port 31029 --worker http://127.0.0.1:31029 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gpt-4-turbo --controller http://127.0.0.1:8888 --port 31030 --worker http://127.0.0.1:31030 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path claude-3-5-sonnet-20240620 --controller http://127.0.0.1:8888 --port 31031 --worker http://127.0.0.1:31031 --host=127.0.0.1 &
-python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 31032 --worker http://127.0.0.1:31032 --host=127.0.0.1 &
+# python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 31032 --worker http://127.0.0.1:31032 --host=127.0.0.1 &
 
 
 # add llava-next-72b 
-python3 -m arena.serve.model_worker --model-path gemini-1.5-pro-latest --controller http://127.0.0.1:8888 --port 32010 --worker http://127.0.0.1:32010 --host=127.0.0.1 &
 python3 -m arena.serve.model_worker --model-path gpt-4o-2024-05-13 --controller http://127.0.0.1:8888 --port 32011 --worker http://127.0.0.1:32011 --host=127.0.0.1 &
+python3 -m arena.serve.model_worker --model-path gpt-4o-mini --controller http://127.0.0.1:8888 --port 32012 --worker http://127.0.0.1:32012 --host=127.0.0.1 &
 
 ```
 

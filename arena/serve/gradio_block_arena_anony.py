@@ -402,7 +402,8 @@ def bot_response_multi(
                 temperature,
                 top_p,
                 max_new_tokens,
-                request,
+                frame_num=8,
+                request=request,
                 apply_rate_limit=False,
             )
         )
