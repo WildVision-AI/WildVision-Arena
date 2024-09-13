@@ -198,9 +198,9 @@ def build_demo(models, elo_results_file, leaderboard_table_file, video_elo_resul
                 side_by_side_anony_video_list = build_side_by_side_ui_anony_video(video_models)
 
             if show_sbs_direct:               
-                with gr.Tab("⚔️ Arena (side-by-side)", elem_id="arena-tab", id=2):
-                    side_by_side_named_list = build_side_by_side_ui_named(image_models)
-
+                # with gr.Tab("⚔️ Arena (side-by-side)", elem_id="arena-tab", id=2):
+                #     side_by_side_named_list = build_side_by_side_ui_named(image_models)
+                side_by_side_named_list = []
                 # with gr.Tab("⚔️ Arena (bench)", id=2):
                 #     side_by_side_anony_list = build_side_by_side_ui_anony_bench(models)
 
