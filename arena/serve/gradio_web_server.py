@@ -504,7 +504,6 @@ def model_worker_stream_iter(
             "stop": conv.stop_str,
             "stop_token_ids": conv.stop_token_ids,
             "echo": False,
-            "frame_num": frame_num,
         }
         input_text = gen_params["prompt"]["text"]
     elif isinstance(vision_input, torch.Tensor):
@@ -514,7 +513,7 @@ def model_worker_stream_iter(
         
         gen_params = {
             "model": model_name,
-            "prompt": {"text":prompt, "image":None, "video":json.dumps(video_tensor_list)},
+            "prompt": {"text":prompt, "image": None, "video":json.dumps(video_tensor_list)},
             "temperature": temperature,
             "repetition_penalty": repetition_penalty,
             "top_p": top_p,
@@ -539,7 +538,7 @@ def model_worker_stream_iter(
 
         gen_params = {
             "model": model_name,
-            "prompt": {"text":prompt, "image":None, "video":json.dumps(encoded_images)},
+            "prompt": {"text":prompt, "image": None, "video":json.dumps(encoded_images)},
             "temperature": temperature,
             "repetition_penalty": repetition_penalty,
             "top_p": top_p,
