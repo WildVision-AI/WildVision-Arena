@@ -107,7 +107,8 @@ enable_moderation = False
 acknowledgment_md = """
 
 ## Acknowledgment
-We thank LMSYS for their great work on https://chat.lmsys.org/.
+- We thank LMSYS for their great work on https://chat.lmsys.org/.
+- Thanks for the support of [Hyperbolic API](https://hyperbolic.xyz/) for [Pixtral-12B](https://app.hyperbolic.xyz/models/pixtral-12b) and [Qwen-VL-7B-instruct](https://app.hyperbolic.xyz/models/qwen2-vl-7b-instruct)
     
 ## Citation
 ```
@@ -568,6 +569,12 @@ def model_worker_stream_iter(
     logger.info(f"==== model worker stream iter request ====\n{input_text}")  
 
     # Stream output
+    print(gen_params.keys())
+    for key, value in gen_params['prompt'].items():
+        if key in ['image', 'video']:
+            print(f"{key}: {value[:100]}")
+        else:
+            print(f"{key}: {value}")
     response = requests.post(
         worker_addr + "/worker_generate_stream",
         headers=headers,
@@ -849,6 +856,7 @@ def bot_response(
                 ) + (disable_textbox,)
             return
         else:
+            # print([x for x in stream_iter]) # for debug
             for i, data in enumerate(stream_iter):
                 # if data["error_code"] == 0:
                 if data.get("error_code", 0) == 0:
